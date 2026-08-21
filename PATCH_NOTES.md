@@ -1,5 +1,43 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — Invariant hardening
+
+This pass closes the failure modes found during the first full static and Community Patch source audit.
+
+### Queue and Production safety
+
+- Added a synchronous population-change guard: a city on any grown order cannot complete normal population growth before Lua restores its frozen Food store.
+- Added end-turn Food snapshots, including save/load and newly captured-city baselines, so a project selected after the metabolic tick is protected on the very next city turn.
+- Added expiring Food-ledger authorization for unit, building, and project completion. Unauthorized normal-Production and purchase completions are rejected.
+- Added a whole-hammer Production sink plus exact per-order ledger restoration, preventing positive modifiers and hundredth-hammer rounding from advancing ordinary orders.
+- Disabled Great Engineer hurry in Chorus hands and blocked conventional Gold unit upgrades.
+- Blocked internal Production and internal Gold trade routes, leaving Food as the only internal cargo yield.
+- Blocked standard Forest, Jungle, and Marsh removal actions for every Fleshborn-owned worker; only Harvester digestion can turn those features into progress.
+- Isolated save keys by owner, city ID, acquisition turn, and coordinates to prevent razed, captured, or recycled city IDs from inheriting stale progress.
+
+### Currency, maintenance, and Happiness
+
+- Replaced nominal capital maintenance refunds by clamping the treasury’s actual base building maintenance to zero, with an engine-level -100% fallback.
+- Moved purchase restrictions, universal unit upkeep, and the building-maintenance fallback into a Community Patch `IsDummy` policy, which is excluded from policy counts and progression checks. This closes civilian and air-unit upkeep that the land/naval trait fields do not cover; the DLL clamps the result at zero.
+- Made Gold/Faith unit and building purchases prohibitively unavailable, disabled automatic Faith purchases, blocked Gold plot buying, and retained completion-hook rejection as a final guard.
+- Replaced aggregate Golden Age meter subtraction with a one-turn Happiness reservation that preserves unrelated Golden Age points and prevents threshold crossings.
+
+### Congress, rewards, capture, and upkeep
+
+- Re-enabled World’s Fair, International Games, and International Space Station processes.
+- Added a 1 Food to 1 Congress-contribution bridge using isolated overflow read by the normal Community Patch League update, with a fractional credit/debt ledger that charges residual native Production against later Food.
+- Counted queued digestion, terrain, and Devourer rewards as army food before calculating The Hunger; rewards can now save an army on the turn they are consumed.
+- Added Community Patch capture-type conversion for Fleshborn unit-class replacements and turn-safe normalization for gifted or pre-existing foreign units.
+- Captured Workers become Harvesters; captured strategic units become their biological class replacement and no longer retain resource requirements.
+- Added dynamic biological replacements for every default building that consumes a strategic resource, including Factory, Hydro Plant, Nuclear Plant, and Spaceship Factory, plus captured-city building normalization.
+- Added immediate metabolic initialization for captured cities and bounded the kill de-duplication cache to the current game turn.
+
+### Loading and presentation
+
+- Changed the Community Patch from a load-order reference to a hard dependency.
+- Updated the metabolism panel for suppressed maintenance, queued Food, and Congress allocation.
+- Kept placeholder graphics and the intentionally empty Dawn of Man audio unchanged.
+
 ## Version 1 — Initial organism
 
 The first playable Community Patch release establishes the complete core loop: Food can grow population, infrastructure, expansion, or an army, and the size of that army feeds back into the same Food supply.
@@ -34,7 +72,7 @@ The first playable Community Patch release establishes the complete core loop: F
 - Removed ordinary city and population unhappiness through trait/city modifiers.
 - Removed excess Happiness contribution to the Golden Age meter while preserving non-Happiness Golden Age sources.
 - Removed land, naval, road, and improvement maintenance through trait modifiers.
-- Added a calculated capital Gold yield that refunds remaining building maintenance.
+- Added the original calculated capital Gold maintenance refund (replaced by the engine-level modifier in the hardening pass above).
 - Added +1 Culture per city and +1 per five Population.
 - Added +10% Food during Golden Ages/Blooming Cycles.
 
@@ -94,9 +132,9 @@ The first playable Community Patch release establishes the complete core loop: F
 - The stock CityView still calls the order list “Production” and displays hammer-shaped cost/progress widgets. The metabolism panel is authoritative for Food costs.
 - Feeding Field adjacency is a hidden city yield. The bonus appears in total city Food but not on the individual tile tooltip.
 - The normal top bar remains visible. Gold and Faith are digested at the start of the Chorus turn rather than being graphically removed from the top bar.
-- Gold or Faith received during the active turn can briefly exist until the next metabolic update. Ordinary conversion leaves a remainder of at most 3 Gold and 2 Faith.
+- Gold or Faith received during the active turn can briefly exist until the next metabolic update, but purchase, tile-buy, automatic-Faith, upgrade, and completion gates prevent it becoming a spending window. Ordinary conversion leaves at most 3 Gold and 2 Faith.
 - Happiness UI remains visible even though standard city/population unhappiness is neutralized and its per-turn Golden Age contribution is removed.
-- Existing conquered buildings keep their normal definitions; their maintenance is refunded rather than every building being replaced with a biological database clone.
+- Conquered buildings without a Fleshborn class override keep their normal definitions; their maintenance is suppressed rather than refunded. Granaries and strategic-resource infrastructure normalize into their biological replacements.
 - Great People retain stock names and mission UI. Great Merchant Gold is handled by normal 4:1 digestion rather than a bespoke Foraging Migration mission.
 - Foreign trade routes keep their stock yield display; Gold is subsequently digested and Science remains normal.
 - The release is single-player only and has not been tested for multiplayer synchronization.

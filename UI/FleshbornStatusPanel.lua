@@ -29,6 +29,9 @@ local function FB_OrderName(cityStatus)
     elseif cityStatus.orderKind == "PROJECT" then
         local row = GameInfo.Projects[cityStatus.orderID]
         return row and Locale.ConvertTextKey(row.Description) or "Grow Project"
+    elseif cityStatus.orderKind == "LEAGUE" then
+        local row = GameInfo.Processes[cityStatus.orderID]
+        return row and Locale.ConvertTextKey(row.Description) or "World Congress Project"
     end
     return "Grow Population"
 end
@@ -41,8 +44,9 @@ local function FB_FormatCity(cityStatus)
 
     table.insert(lines, FB_Color(cityStatus.name .. "  //  POP " .. tostring(cityStatus.population), "[COLOR_YIELD_FOOD]"))
     table.insert(lines, string.format(
-        "  Gross %+d [ICON_FOOD]  -  metabolism %d  -  army %d  =  %s usable",
+        "  Gross %+d [ICON_FOOD]  +  queued %d  -  metabolism %d  -  army %d  =  %s usable",
         cityStatus.grossFood or 0,
+        cityStatus.injectedFood or 0,
         cityStatus.metabolicBurden or 0,
         cityStatus.armyBurden or 0,
         netText
@@ -64,6 +68,13 @@ local function FB_FormatCity(cityStatus)
             cityStatus.productionGain or 0,
             (cityStatus.pendingFood or 0) > 0 and ("  //  " .. tostring(cityStatus.pendingFood) .. " Food waiting") or ""
         ))
+    elseif cityStatus.orderKind == "LEAGUE" then
+        table.insert(lines, "  Contributing to: " .. mode .. "  //  1 Food becomes 1 Congress contribution")
+        table.insert(lines, string.format(
+            "  Last allocation: %d [ICON_FOOD] -> %d contribution",
+            cityStatus.foodSpent or 0,
+            cityStatus.productionGain or 0
+        ))
     else
         table.insert(lines, "  Mode: [COLOR_POSITIVE_TEXT]Grow Population[ENDCOLOR]  //  usable Food remains in the growth store")
     end
@@ -79,6 +90,7 @@ local function FB_LiveFallback(player)
             population = city:GetPopulation(),
             storedFood = city:GetFood(),
             grossFood = city:FoodDifference(),
+            injectedFood = 0,
             metabolicBurden = 3 + math.ceil(city:GetPopulation() * 0.5),
             armyBurden = 0,
             netFood = city:FoodDifference() - 3 - math.ceil(city:GetPopulation() * 0.5),
@@ -98,7 +110,7 @@ local function FB_LiveFallback(player)
         armyFed = 0,
         hungerTier = 0,
         currencyFood = 0,
-        maintenanceRefund = 0,
+        maintenanceSuppressed = 0,
         cities = cities
     }
 end
@@ -141,10 +153,9 @@ local function FB_Refresh()
     Controls.CityStatusLabel:SetText(table.concat(cityBlocks, "[NEWLINE][NEWLINE]------------------------------------------------------------[NEWLINE][NEWLINE]"))
     Controls.CityStatusLabel:CalculateSize()
     Controls.CityScrollPanel:CalculateInternalSize()
-    Controls.FooterLabel:SetText(string.format(
-        "4 Gold = 1 Food  //  3 Faith = 1 Food  //  %d maintenance refunded",
-        status.maintenanceRefund or 0
-    ))
+    Controls.FooterLabel:SetText(
+        "4 Gold = 1 Food  //  3 Faith = 1 Food  //  building maintenance clamped to 0"
+    )
 end
 
 local function FB_SetPanelOpen(open)

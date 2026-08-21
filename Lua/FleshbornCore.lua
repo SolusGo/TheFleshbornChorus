@@ -13,16 +13,23 @@ local BUILDING_METABOLISM = GameInfoTypes.BUILDING_FLESHBORN_METABOLISM
 local BUILDING_FIELD_FOOD = GameInfoTypes.BUILDING_FLESHBORN_FIELD_FOOD
 local BUILDING_EDIBLE_FOOD = GameInfoTypes.BUILDING_FLESHBORN_EDIBLE_FOOD
 local BUILDING_MEMORY = GameInfoTypes.BUILDING_FLESHBORN_MEMORY
-local BUILDING_MAINTENANCE = GameInfoTypes.BUILDING_FLESHBORN_MAINTENANCE
+local BUILDING_PRODUCTION_SINK = GameInfoTypes.BUILDING_FLESHBORN_PRODUCTION_SINK
 local BUILDING_BLOOM = GameInfoTypes.BUILDING_FLESHBORN_BLOOM
+local POLICY_INVARIANTS = GameInfoTypes.POLICY_FLESHBORN_INVARIANTS
 local IMPROVEMENT_FEEDING_FIELD = GameInfoTypes.IMPROVEMENT_FLESHBORN_FEEDING_FIELD
 local IMPROVEMENT_PLANTATION = GameInfoTypes.IMPROVEMENT_PLANTATION
 local PROCESS_GROWTH = GameInfoTypes.PROCESS_FLESHBORN_GROWTH
 local BUILD_FARM = GameInfoTypes.BUILD_FARM
+local BUILD_REMOVE_FOREST = GameInfoTypes.BUILD_REMOVE_FOREST
+local BUILD_REMOVE_JUNGLE = GameInfoTypes.BUILD_REMOVE_JUNGLE
+local BUILD_REMOVE_MARSH = GameInfoTypes.BUILD_REMOVE_MARSH
+local MISSION_HURRY = GameInfoTypes.MISSION_HURRY
 local BUILD_FEEDING_FIELD = GameInfoTypes.BUILD_FLESHBORN_FEEDING_FIELD
 local BUILD_DIGEST_FOREST = GameInfoTypes.BUILD_FLESHBORN_DIGEST_FOREST
 local BUILD_DIGEST_JUNGLE = GameInfoTypes.BUILD_FLESHBORN_DIGEST_JUNGLE
 local BUILD_DIGEST_MARSH = GameInfoTypes.BUILD_FLESHBORN_DIGEST_MARSH
+local YIELD_PRODUCTION = GameInfoTypes.YIELD_PRODUCTION
+local TRADE_CONNECTION_FOOD = TradeConnectionTypes.TRADE_CONNECTION_FOOD
 
 local FB_SAVE = Modding.OpenSaveData()
 local FB_HUNGER_PROMOTIONS = {}
@@ -43,16 +50,43 @@ if BUILD_DIGEST_FOREST ~= nil then FB_DIGEST_FOOD[BUILD_DIGEST_FOREST] = 20 end
 if BUILD_DIGEST_JUNGLE ~= nil then FB_DIGEST_FOOD[BUILD_DIGEST_JUNGLE] = 15 end
 if BUILD_DIGEST_MARSH ~= nil then FB_DIGEST_FOOD[BUILD_DIGEST_MARSH] = 12 end
 
-local FB_BUILDING_MAINTENANCE = {}
-for building in GameInfo.Buildings() do
-    local maintenance = tonumber(building.GoldMaintenance) or 0
-    if maintenance > 0 then
-        table.insert(FB_BUILDING_MAINTENANCE, {id = building.ID, cost = maintenance})
+local FB_LEAGUE_PROCESSES = {}
+for leagueProject in GameInfo.LeagueProjects() do
+    local processID = GameInfoTypes[leagueProject.Process]
+    if processID ~= nil then
+        FB_LEAGUE_PROCESSES[processID] = leagueProject.ID
+    end
+end
+
+local FB_UNIT_CLASS_OVERRIDES = {}
+for override in GameInfo.Civilization_UnitClassOverrides{
+    CivilizationType = "CIVILIZATION_FLESHBORN_CHORUS"
+} do
+    local classID = GameInfoTypes[override.UnitClassType]
+    local unitID = GameInfoTypes[override.UnitType]
+    if classID ~= nil and unitID ~= nil then
+        FB_UNIT_CLASS_OVERRIDES[classID] = unitID
+    end
+end
+
+local FB_BUILDING_REPLACEMENTS = {}
+for override in GameInfo.Civilization_BuildingClassOverrides{
+    CivilizationType = "CIVILIZATION_FLESHBORN_CHORUS"
+} do
+    local classInfo = GameInfo.BuildingClasses[override.BuildingClassType]
+    local baseID = classInfo and GameInfoTypes[classInfo.DefaultBuilding] or nil
+    local replacementID = override.BuildingType and GameInfoTypes[override.BuildingType] or nil
+    if baseID ~= nil and replacementID ~= nil and baseID ~= replacementID then
+        FB_BUILDING_REPLACEMENTS[baseID] = replacementID
     end
 end
 
 local FB_UNIT_ERA_FEED_X2 = {}
 local FB_KILL_CACHE = {}
+local FB_KILL_CACHE_TURN = -1
+local FB_POPULATION_ROLLBACK = false
+local FB_UNIT_CONVERSION = false
+local FB_BALANCE_VP = Game.IsCustomModOption ~= nil and Game.IsCustomModOption("BALANCE_VP")
 
 MapModData.FleshbornStatus = MapModData.FleshbornStatus or {}
 
@@ -76,7 +110,14 @@ local function FB_SetSavedNumber(key, value)
 end
 
 local function FB_CityKey(prefix, playerID, city)
-    return "FB_" .. prefix .. "_" .. tostring(playerID) .. "_" .. tostring(city:GetID())
+    -- Acquired turn and coordinates isolate the ledger when a captured city
+    -- reuses an ID or a city is razed and a later city receives that ID.
+    return "FB_" .. prefix
+        .. "_" .. tostring(playerID)
+        .. "_" .. tostring(city:GetID())
+        .. "_" .. tostring(city:GetGameTurnAcquired())
+        .. "_" .. tostring(city:GetX())
+        .. "_" .. tostring(city:GetY())
 end
 
 local function FB_OrderKey(prefix, playerID, city, signature)
@@ -95,8 +136,10 @@ local function FB_SetBuildingCount(city, buildingID, count)
         return
     end
     count = math.max(0, math.floor(count or 0))
-    if city:GetNumRealBuilding(buildingID) ~= count then
-        city:SetNumRealBuilding(buildingID, count)
+    local freeCount = city:GetNumFreeBuilding(buildingID) or 0
+    local realTarget = math.max(0, count - freeCount)
+    if city:GetNumRealBuilding(buildingID) ~= realTarget then
+        city:SetNumRealBuilding(buildingID, realTarget)
     end
 end
 
@@ -148,10 +191,44 @@ local function FB_CountSpecialists(city)
     return count
 end
 
+local function FB_NormalizeCityBuildings(city)
+    for baseID, replacementID in pairs(FB_BUILDING_REPLACEMENTS) do
+        local baseReal = city:GetNumRealBuilding(baseID) or 0
+        local baseFree = city:GetNumFreeBuilding(baseID) or 0
+        if baseReal > 0 or baseFree > 0 then
+            local hasReplacement = (city:GetNumRealBuilding(replacementID) or 0) > 0
+                or (city:GetNumFreeBuilding(replacementID) or 0) > 0
+            city:SetNumRealBuilding(baseID, 0)
+            city:SetNumFreeBuilding(baseID, 0)
+            if not hasReplacement then
+                if baseFree > 0 then
+                    city:SetNumFreeBuilding(replacementID, 1)
+                else
+                    city:SetNumRealBuilding(replacementID, 1)
+                end
+            end
+        end
+    end
+end
+
 local function FB_UpdateCityDummies(playerID, player, city)
+    -- Captured and gifted cities can retain the previous civilization's
+    -- default building type. Normalize overrides before resource consumption,
+    -- maintenance, or city yields are evaluated.
+    FB_NormalizeCityBuildings(city)
     FB_SetBuildingCount(city, BUILDING_METABOLISM, 1)
     FB_SetBuildingCount(city, BUILDING_BLOOM, player:IsGoldenAge() and 1 or 0)
     FB_SetBuildingCount(city, BUILDING_MEMORY, 1 + math.floor(city:GetPopulation() / 5))
+
+    -- Remove the previous sink, measure the city's whole raw hammer yield, and
+    -- cancel it.  The Food ledger below separately restores its exact saved
+    -- progress, including the engine's hundredth-hammer rounding.
+    FB_SetBuildingCount(city, BUILDING_PRODUCTION_SINK, 0)
+    FB_SetBuildingCount(
+        city,
+        BUILDING_PRODUCTION_SINK,
+        math.max(0, city:GetBaseYieldRate(YIELD_PRODUCTION))
+    )
 
     local adjacencyFood = 0
     local edibleFood = 0
@@ -178,29 +255,26 @@ local function FB_UpdateCityDummies(playerID, player, city)
     FB_SetBuildingCount(city, BUILDING_EDIBLE_FOOD, edibleFood)
 end
 
-local function FB_CalculateBuildingMaintenance(player)
-    local total = 0
-    for city in player:Cities() do
-        for _, entry in ipairs(FB_BUILDING_MAINTENANCE) do
-            if city:GetNumRealBuilding(entry.id) > 0 or city:GetNumFreeBuilding(entry.id) > 0 then
-                total = total + entry.cost
-            end
-        end
-    end
-    return total
-end
-
-local function FB_UpdateMaintenanceRefund(player)
-    local capital = player:GetCapitalCity()
-    if capital == nil then
-        return 0
+local function FB_EnsurePlayerInvariants(player)
+    if POLICY_INVARIANTS ~= nil and not player:HasPolicy(POLICY_INVARIANTS) then
+        player:SetHasPolicy(POLICY_INVARIANTS, true)
     end
 
-    local maintenance = FB_CalculateBuildingMaintenance(player)
-    for city in player:Cities() do
-        FB_SetBuildingCount(city, BUILDING_MAINTENANCE, city:GetID() == capital:GetID() and maintenance or 0)
+    -- Prevent automatic Great Person/religious purchases from firing before
+    -- the next currency digestion pass.  Manual purchases are made
+    -- unaffordable by the dummy policy and checked again by completion hooks.
+    if player.SetDisableAutomaticFaithPurchase ~= nil then
+        player:SetDisableAutomaticFaithPurchase(true)
     end
-    return maintenance
+
+    local ok, baseMaintenance = pcall(function()
+        return player:GetBaseBuildingMaintenance()
+    end)
+    -- The DLL setter clamps the real treasury base to zero.  This is exact
+    -- accounting: free buildings, captured buildings, and maintenance
+    -- modifiers cannot turn a nominal Lua refund into profit.
+    player:SetBaseBuildingGoldMaintenance(0)
+    return ok and math.max(0, tonumber(baseMaintenance) or 0) or 0
 end
 
 local function FB_GetUnitFeedX2(unitInfo)
@@ -281,6 +355,9 @@ local function FB_GetOrder(city)
         if processType == PROCESS_GROWTH then
             return {kind = "GROWTH", id = processType, signature = "GROWTH"}
         end
+        if FB_LEAGUE_PROCESSES[processType] then
+            return {kind = "LEAGUE", id = processType, signature = "L" .. tostring(processType)}
+        end
         return {kind = "PROCESS", id = processType, signature = "X" .. tostring(processType)}
     end
 
@@ -288,6 +365,10 @@ local function FB_GetOrder(city)
 end
 
 local function FB_GetFoodMultiplier(city, order)
+    if order.kind == "LEAGUE" then
+        return 1000
+    end
+
     local multiplier = 1000
     if order.kind == "BUILDING" or order.kind == "PROJECT" then
         multiplier = 1250
@@ -330,6 +411,10 @@ local function FB_FindNearestCity(player, x, y)
 end
 
 local function FB_DigestCurrency(playerID, player, cities)
+    if #cities == 0 then
+        return 0
+    end
+
     local food = 0
     local gold = player:GetGold()
     if gold ~= nil and gold > 0 then
@@ -351,7 +436,7 @@ local function FB_DigestCurrency(playerID, player, cities)
         end
     end
 
-    if food <= 0 or #cities == 0 then
+    if food <= 0 then
         return 0
     end
 
@@ -370,27 +455,37 @@ local function FB_IsPlayerAtWar(player)
     return ok and count ~= nil and count > 0
 end
 
-local function FB_SuppressHappinessGoldenAge(player)
-    -- Luxuries may still appear in the stock Happiness UI, but that number is
-    -- not allowed to become a second economy.  Removing the per-turn excess
-    -- contribution preserves Golden Age points granted by policies, wonders,
-    -- and Great People while making luxury Happiness economically inert.
-    if player:IsGoldenAge() then return end
-    local excess = player:GetExcessHappiness()
-    if excess ~= nil and excess > 0 then
-        player:ChangeGoldenAgeProgressMeter(-excess)
+local function FB_SuppressHappinessGoldenAge(playerID, player)
+    -- PlayerDoTurn fires after the DLL processes Golden Age progress.  Keep a
+    -- one-turn reservation equal to the DLL's Happiness-for-GAP value: the next DLL tick pays
+    -- that reservation back, while points from policies, wonders, events, and
+    -- Great People remain untouched.  This also prevents a Happiness tick from
+    -- crossing the threshold before Lua can repair it.
+    local reserveKey = "FB_GA_RESERVE_" .. tostring(playerID)
+    local reserve = FB_GetSavedNumber(reserveKey, 0)
+    local happinessPoints = tonumber(player:GetHappinessForGAP()) or 0
+    local meterRuns = FB_BALANCE_VP or not player:IsGoldenAge()
+    local happinessApplied = meterRuns and happinessPoints or 0
+    local correction = reserve - happinessApplied
+    if correction ~= 0 then
+        player:ChangeGoldenAgeProgressMeter(correction)
     end
+
+    local nextReserve = 0
+    if meterRuns then
+        if happinessPoints > 0 then
+            nextReserve = math.min(happinessPoints, math.max(0, player:GetGoldenAgeProgressMeter()))
+        else
+            nextReserve = happinessPoints
+        end
+        if nextReserve ~= 0 then
+            player:ChangeGoldenAgeProgressMeter(-nextReserve)
+        end
+    end
+    FB_SetSavedNumber(reserveKey, nextReserve)
 end
 
-local function FB_ApplyFoodProject(playerID, player, city, order, availableFood, hungerTier)
-    if availableFood <= 0 then
-        return 0, 0, FB_GetFoodMultiplier(city, order)
-    end
-
-    if hungerTier >= 7 and order.kind == "UNIT" and FB_IsMilitaryUnitType(order.id) then
-        return 0, 0, FB_GetFoodMultiplier(city, order)
-    end
-
+local function FB_GetFoodToSpend(player, order, availableFood)
     local foodToSpend = availableFood
     if not player:IsHuman() then
         local ratio = 0.40
@@ -402,6 +497,19 @@ local function FB_ApplyFoodProject(playerID, player, city, order, availableFood,
         foodToSpend = math.floor(availableFood * ratio)
         if availableFood > 0 and foodToSpend < 1 then foodToSpend = 1 end
     end
+    return math.max(0, foodToSpend)
+end
+
+local function FB_ApplyFoodProject(playerID, player, city, order, availableFood, hungerTier)
+    if availableFood <= 0 then
+        return 0, 0, FB_GetFoodMultiplier(city, order)
+    end
+
+    if hungerTier >= 7 and order.kind == "UNIT" and FB_IsMilitaryUnitType(order.id) then
+        return 0, 0, FB_GetFoodMultiplier(city, order)
+    end
+
+    local foodToSpend = FB_GetFoodToSpend(player, order, availableFood)
 
     local multiplier = FB_GetFoodMultiplier(city, order)
     local progressKey = FB_OrderKey("PROGRESS", playerID, city, order.signature)
@@ -418,6 +526,12 @@ local function FB_ApplyFoodProject(playerID, player, city, order, availableFood,
     credit = credit - (productionGain * multiplier)
 
     if productionGain > 0 then
+        if storedProgress + productionGain >= city:GetProductionNeeded() then
+            FB_SetSavedNumber(
+                FB_OrderKey("AUTH", playerID, city, order.signature),
+                Game.GetGameTurn() + 1
+            )
+        end
         city:ChangeProduction(productionGain)
     end
 
@@ -428,9 +542,52 @@ local function FB_ApplyFoodProject(playerID, player, city, order, availableFood,
     else
         FB_SetSavedNumber(progressKey, 0)
         FB_SetSavedNumber(creditKey, 0)
+        FB_SetSavedNumber(FB_OrderKey("AUTH", playerID, city, order.signature), 0)
     end
 
     return foodToSpend, productionGain, multiplier
+end
+
+local function FB_ApplyLeagueProcess(playerID, player, city, order, availableFood)
+    local league = Game.GetActiveLeague()
+    local leagueProjectID = FB_LEAGUE_PROCESSES[order.id]
+    if league == nil or leagueProjectID == nil
+        or not league:IsProjectActive(leagueProjectID)
+        or league:IsProjectComplete(leagueProjectID) then
+        city:SetOverflowProduction(0)
+        city:SetFeatureProduction(0)
+        return 0, 0, 1000
+    end
+
+    local foodToSpend = FB_GetFoodToSpend(player, order, availableFood)
+
+    -- CP counts World Congress work as city Production plus overflow during
+    -- the following global League update.  Track hundredth-hammer credit so
+    -- fractional native yield and legacy Production-route residue are charged
+    -- against Food rather than becoming free Congress contribution.
+    local creditKey = FB_OrderKey("LEAGUE_CREDIT", playerID, city, order.signature)
+    local creditX100 = FB_GetSavedNumber(creditKey, 0) + (foodToSpend * 100)
+    local nativeX100 = city:GetYieldRateTimes100(YIELD_PRODUCTION)
+    local overflow = math.max(0, math.floor((creditX100 - nativeX100) / 100))
+    local contributionX100 = nativeX100 + (overflow * 100)
+    if contributionX100 < 0 then
+        overflow = math.max(0, math.ceil((-nativeX100) / 100))
+        contributionX100 = nativeX100 + (overflow * 100)
+    end
+
+    city:SetFeatureProduction(0)
+    city:SetOverflowProduction(overflow)
+    FB_SetSavedNumber(creditKey, creditX100 - contributionX100)
+    return foodToSpend, math.max(0, math.floor(contributionX100 / 100)), 1000
+end
+
+local function FB_ClearLeagueOverflow(city)
+    if city:GetOverflowProduction() ~= 0 then
+        city:SetOverflowProduction(0)
+    end
+    if city:GetFeatureProduction() ~= 0 then
+        city:SetFeatureProduction(0)
+    end
 end
 
 local function FB_ApplyHungerPromotions(player, tier)
@@ -476,6 +633,45 @@ local function FB_NotifyHungerChange(playerID, player, oldTier, newTier)
     end
 end
 
+local function FB_GetFleshbornUnitForClass(unitType)
+    local unitInfo = GameInfo.Units[unitType]
+    if unitInfo == nil or unitInfo.Class == nil then
+        return nil
+    end
+    return FB_UNIT_CLASS_OVERRIDES[GameInfoTypes[unitInfo.Class]]
+end
+
+local function FB_NormalizeUnits(player)
+    if FB_UNIT_CONVERSION then return end
+
+    local units = {}
+    for unit in player:Units() do
+        table.insert(units, unit)
+    end
+
+    FB_UNIT_CONVERSION = true
+    for _, unit in ipairs(units) do
+        local current = player:GetUnitByID(unit:GetID())
+        if current ~= nil then
+            local currentType = current:GetUnitType()
+            local targetType = FB_GetFleshbornUnitForClass(currentType)
+            if targetType ~= nil and targetType ~= currentType then
+                local replacement = player:InitUnit(
+                    targetType,
+                    current:GetX(),
+                    current:GetY(),
+                    current:GetUnitAIType(),
+                    current:GetFacingDirection()
+                )
+                if replacement ~= nil then
+                    replacement:Convert(current, false, false)
+                end
+            end
+        end
+    end
+    FB_UNIT_CONVERSION = false
+end
+
 local function FB_ProcessPlayerTurn(playerID)
     local player = Players[playerID]
     if not FB_IsFleshbornPlayer(player) then
@@ -486,24 +682,28 @@ local function FB_ProcessPlayerTurn(playerID)
     local cityData = {}
     local totalPreArmySupply = 0
 
+    local maintenanceSuppressed = FB_EnsurePlayerInvariants(player)
+    FB_NormalizeUnits(player)
+
     for city in player:Cities() do
         table.insert(cities, city)
         FB_UpdateCityDummies(playerID, player, city)
     end
 
-    local maintenanceRefund = FB_UpdateMaintenanceRefund(player)
     local currencyFood = FB_DigestCurrency(playerID, player, cities)
-    FB_SuppressHappinessGoldenAge(player)
+    FB_SuppressHappinessGoldenAge(playerID, player)
 
     for _, city in ipairs(cities) do
         local gross = FB_GetGrossFood(city)
         local metabolic = FB_GetMetabolicBurden(city)
-        local preArmy = math.max(0, gross - metabolic)
+        local pending = FB_GetPendingFood(playerID, city)
+        local preArmy = math.max(0, gross + pending - metabolic)
         totalPreArmySupply = totalPreArmySupply + preArmy
         table.insert(cityData, {
             city = city,
             gross = gross,
             metabolic = metabolic,
+            pending = pending,
             preArmy = preArmy,
             army = 0
         })
@@ -535,14 +735,17 @@ local function FB_ProcessPlayerTurn(playerID)
     for _, data in ipairs(cityData) do
         local city = data.city
         local order = FB_GetOrder(city)
-        local pending = FB_GetPendingFood(playerID, city)
-        local usable = math.max(0, data.gross - data.metabolic - data.army)
-        local net = data.gross - data.metabolic - data.army
+        local pending = data.pending
+        local usable = math.max(0, data.preArmy - data.army)
+        local net = data.gross + pending - data.metabolic - data.army
+        local nativeSurplus = math.max(0, data.gross - data.metabolic)
+        local pendingAfterMetabolism = math.max(0, pending - math.max(0, data.metabolic - data.gross))
+        local pendingForProject = math.max(0, pendingAfterMetabolism - math.max(0, data.army - nativeSurplus))
         local foodSpent = 0
         local productionGain = 0
         local multiplier = 0
 
-        if order.kind == "UNIT" or order.kind == "BUILDING" or order.kind == "PROJECT" then
+        if order.kind == "UNIT" or order.kind == "BUILDING" or order.kind == "PROJECT" or order.kind == "LEAGUE" then
             if player:IsHuman() then
                 local frozenKey = FB_CityKey("FROZEN", playerID, city)
                 local frozen = FB_GetSavedNumber(frozenKey, -1)
@@ -557,16 +760,19 @@ local function FB_ProcessPlayerTurn(playerID)
                 city:ChangeFood(-(data.metabolic + data.army))
             end
 
-            foodSpent, productionGain, multiplier = FB_ApplyFoodProject(
-                playerID, player, city, order, usable + pending, hungerTier
-            )
+            if order.kind == "LEAGUE" then
+                foodSpent, productionGain, multiplier = FB_ApplyLeagueProcess(
+                    playerID, player, city, order, usable
+                )
+            else
+                FB_ClearLeagueOverflow(city)
+                foodSpent, productionGain, multiplier = FB_ApplyFoodProject(
+                    playerID, player, city, order, usable, hungerTier
+                )
+            end
 
             if player:IsHuman() then
-                if foodSpent < pending then
-                    FB_SetPendingFood(playerID, city, pending - foodSpent)
-                else
-                    FB_SetPendingFood(playerID, city, 0)
-                end
+                FB_SetPendingFood(playerID, city, math.max(0, pendingForProject - foodSpent))
             else
                 -- Gross city Food is applied by the engine.  Subtract only the
                 -- biological burdens and the AI allocation sent to the order;
@@ -575,6 +781,7 @@ local function FB_ProcessPlayerTurn(playerID)
                 FB_SetPendingFood(playerID, city, 0)
             end
         else
+            FB_ClearLeagueOverflow(city)
             local frozenKey = FB_CityKey("FROZEN", playerID, city)
             local frozen = FB_GetSavedNumber(frozenKey, -1)
             if player:IsHuman() and frozen >= 0 then
@@ -589,7 +796,9 @@ local function FB_ProcessPlayerTurn(playerID)
 
         local foodCost = 0
         if multiplier > 0 then
-            foodCost = math.ceil((city:GetProductionNeeded() * multiplier) / 1000)
+            if order.kind ~= "LEAGUE" then
+                foodCost = math.ceil((city:GetProductionNeeded() * multiplier) / 1000)
+            end
         end
 
         table.insert(statusCities, {
@@ -598,6 +807,7 @@ local function FB_ProcessPlayerTurn(playerID)
             population = city:GetPopulation(),
             storedFood = city:GetFood(),
             grossFood = data.gross,
+            injectedFood = data.pending,
             metabolicBurden = data.metabolic,
             armyBurden = data.army,
             netFood = net,
@@ -611,6 +821,7 @@ local function FB_ProcessPlayerTurn(playerID)
             projectNeeded = city:GetProductionNeeded(),
             digestive = FB_HasBuilding(city, BUILDING_DIGESTIVE)
         })
+        FB_SetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), city:GetFood())
     end
 
     local oldTier = FB_GetSavedNumber("FB_HUNGER_TIER_" .. tostring(playerID), 0)
@@ -625,7 +836,7 @@ local function FB_ProcessPlayerTurn(playerID)
         preArmySupply = totalPreArmySupply,
         hungerTier = hungerTier,
         currencyFood = currencyFood,
-        maintenanceRefund = maintenanceRefund,
+        maintenanceSuppressed = maintenanceSuppressed,
         cities = statusCities
     }
 
@@ -670,7 +881,7 @@ end
 local function FB_CityCanMaintain(playerID, cityID, processType)
     local player = Players[playerID]
     if FB_IsFleshbornPlayer(player) then
-        return processType == PROCESS_GROWTH
+        return processType == PROCESS_GROWTH or FB_LEAGUE_PROCESSES[processType] ~= nil
     end
     return processType ~= PROCESS_GROWTH
 end
@@ -685,7 +896,10 @@ end
 
 local function FB_PlayerCanBuild(playerID, unitID, x, y, buildType)
     local fleshborn = FB_IsFleshbornPlayer(Players[playerID])
-    if fleshborn and buildType == BUILD_FARM then
+    if fleshborn and (buildType == BUILD_FARM
+        or buildType == BUILD_REMOVE_FOREST
+        or buildType == BUILD_REMOVE_JUNGLE
+        or buildType == BUILD_REMOVE_MARSH) then
         return false
     end
 
@@ -703,6 +917,7 @@ local function FB_ClearUnitProgress(playerID, city, unitType)
     local signature = "U" .. tostring(unitType)
     FB_SetSavedNumber(FB_OrderKey("PROGRESS", playerID, city, signature), 0)
     FB_SetSavedNumber(FB_OrderKey("CREDIT", playerID, city, signature), 0)
+    FB_SetSavedNumber(FB_OrderKey("AUTH", playerID, city, signature), 0)
 end
 
 local function FB_ClearBuildingProgress(playerID, city, buildingType)
@@ -710,9 +925,38 @@ local function FB_ClearBuildingProgress(playerID, city, buildingType)
     local signature = "B" .. tostring(buildingType)
     FB_SetSavedNumber(FB_OrderKey("PROGRESS", playerID, city, signature), 0)
     FB_SetSavedNumber(FB_OrderKey("CREDIT", playerID, city, signature), 0)
+    FB_SetSavedNumber(FB_OrderKey("AUTH", playerID, city, signature), 0)
 end
 
-local function FB_OnCityTrained(playerID, cityID, unitID)
+local function FB_ClearProjectProgress(playerID, city, projectType)
+    if city == nil or projectType == nil then return end
+    local signature = "P" .. tostring(projectType)
+    FB_SetSavedNumber(FB_OrderKey("PROGRESS", playerID, city, signature), 0)
+    FB_SetSavedNumber(FB_OrderKey("CREDIT", playerID, city, signature), 0)
+    FB_SetSavedNumber(FB_OrderKey("AUTH", playerID, city, signature), 0)
+end
+
+local function FB_ConsumeCompletionAuthorization(playerID, city, signature)
+    local key = FB_OrderKey("AUTH", playerID, city, signature)
+    local expiryTurn = FB_GetSavedNumber(key, -1)
+    local savedProgress = FB_GetSavedNumber(FB_OrderKey("PROGRESS", playerID, city, signature), 0)
+    FB_SetSavedNumber(key, 0)
+    -- Dynamic costs can fall between turns (for example when an instance-cost
+    -- unit dies).  Saved ledger progress at or above the current requirement
+    -- is still entirely Food-grown and must remain valid after the token ages.
+    return expiryTurn >= Game.GetGameTurn() or savedProgress >= city:GetProductionNeeded()
+end
+
+local function FB_NotifyRejectedCompletion(playerID, player, description)
+    if playerID ~= Game.GetActivePlayer() then return end
+    player:AddNotification(
+        NotificationTypes.NOTIFICATION_GENERIC,
+        tostring(description) .. " was rejected: the Chorus can complete orders only through Food growth.",
+        "All Is Sustenance"
+    )
+end
+
+local function FB_OnCityTrained(playerID, cityID, unitID, bGold, bFaith)
     local player = Players[playerID]
     if not FB_IsFleshbornPlayer(player) then return end
     local city = player:GetCityByID(cityID)
@@ -720,16 +964,61 @@ local function FB_OnCityTrained(playerID, cityID, unitID)
     if city == nil or unit == nil then return end
 
     local unitType = unit:GetUnitType()
+    local authorized = not bGold and not bFaith
+        and FB_ConsumeCompletionAuthorization(playerID, city, "U" .. tostring(unitType))
+    if not authorized then
+        local unitInfo = GameInfo.Units[unitType]
+        unit:Kill(true, -1)
+        FB_NotifyRejectedCompletion(playerID, player, unitInfo and Locale.ConvertTextKey(unitInfo.Description) or "Unit")
+        return
+    end
+
     FB_ClearUnitProgress(playerID, city, unitType)
     if unitType == UNIT_BUD and city:GetPopulation() > 1 then
         city:ChangePopulation(-1, true)
     end
 end
 
-local function FB_OnCityConstructed(playerID, cityID, buildingType)
+local function FB_OnCityConstructed(playerID, cityID, buildingType, bGold, bFaith)
     local player = Players[playerID]
     if not FB_IsFleshbornPlayer(player) then return end
-    FB_ClearBuildingProgress(playerID, player:GetCityByID(cityID), buildingType)
+    local city = player:GetCityByID(cityID)
+    if city == nil then return end
+
+    local authorized = not bGold and not bFaith
+        and FB_ConsumeCompletionAuthorization(playerID, city, "B" .. tostring(buildingType))
+    if not authorized then
+        local realCount = city:GetNumRealBuilding(buildingType)
+        if realCount > 0 then
+            city:SetNumRealBuilding(buildingType, realCount - 1)
+        end
+        local buildingInfo = GameInfo.Buildings[buildingType]
+        FB_NotifyRejectedCompletion(playerID, player, buildingInfo and Locale.ConvertTextKey(buildingInfo.Description) or "Building")
+        return
+    end
+
+    FB_ClearBuildingProgress(playerID, city, buildingType)
+end
+
+local function FB_OnCityCreated(playerID, cityID, projectType, bGold, bFaith)
+    local player = Players[playerID]
+    if not FB_IsFleshbornPlayer(player) then return end
+    local city = player:GetCityByID(cityID)
+    if city == nil then return end
+
+    local authorized = not bGold and not bFaith
+        and FB_ConsumeCompletionAuthorization(playerID, city, "P" .. tostring(projectType))
+    if not authorized then
+        local team = Teams[player:GetTeam()]
+        if team ~= nil and team:GetProjectCount(projectType) > 0 then
+            team:ChangeProjectCount(projectType, -1)
+        end
+        local projectInfo = GameInfo.Projects[projectType]
+        FB_NotifyRejectedCompletion(playerID, player, projectInfo and Locale.ConvertTextKey(projectInfo.Description) or "Project")
+        return
+    end
+
+    FB_ClearProjectProgress(playerID, city, projectType)
 end
 
 local function FB_OnPlayerBuilt(playerID, unitID, x, y, buildType)
@@ -742,6 +1031,12 @@ local function FB_OnPlayerBuilt(playerID, unitID, x, y, buildType)
 end
 
 local function FB_OnUnitPrekill(killedPlayerID, killedUnitID, killedUnitType, x, y, delay, killerPlayerID)
+    local gameTurn = Game.GetGameTurn()
+    if gameTurn ~= FB_KILL_CACHE_TURN then
+        FB_KILL_CACHE = {}
+        FB_KILL_CACHE_TURN = gameTurn
+    end
+
     if killerPlayerID == nil or killerPlayerID < 0 then return end
     local killer = Players[killerPlayerID]
     if not FB_IsFleshbornPlayer(killer) then return end
@@ -777,6 +1072,101 @@ local function FB_OnUnitPrekill(killedPlayerID, killedUnitID, killedUnitType, x,
     end
 end
 
+local function FB_OnSetPopulation(x, y, oldPopulation, newPopulation)
+    if FB_POPULATION_ROLLBACK or newPopulation <= oldPopulation then return end
+
+    local plot = Map.GetPlot(x, y)
+    local city = plot and plot:GetPlotCity() or nil
+    if city == nil then return end
+    local playerID = city:GetOwner()
+    local player = Players[playerID]
+    if not FB_IsFleshbornPlayer(player) then return end
+
+    local order = FB_GetOrder(city)
+    if order.kind == "GROWTH" then return end
+
+    local frozenKey = FB_CityKey("FROZEN", playerID, city)
+    local frozen = FB_GetSavedNumber(frozenKey, -1)
+    if frozen < 0 then
+        frozen = FB_GetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), city:GetFood())
+    end
+
+    -- Use ChangePopulation rather than SetPopulation so the outer DLL growth
+    -- call and this rollback also cancel their religion population deltas.
+    FB_POPULATION_ROLLBACK = true
+    city:ChangePopulation(oldPopulation - newPopulation, true)
+    FB_POPULATION_ROLLBACK = false
+    FB_SetFood(city, frozen)
+    FB_SetSavedNumber(frozenKey, frozen)
+    FB_SetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), frozen)
+end
+
+local function FB_OnPlayerDoneTurn(playerID)
+    local player = Players[playerID]
+    if not FB_IsFleshbornPlayer(player) then return end
+
+    FB_EnsurePlayerInvariants(player)
+    for city in player:Cities() do
+        FB_UpdateCityDummies(playerID, player, city)
+        local order = FB_GetOrder(city)
+        if player:IsHuman() and order.kind ~= "GROWTH" then
+            FB_SetSavedNumber(FB_CityKey("FROZEN", playerID, city), city:GetFood())
+        elseif player:IsHuman() then
+            FB_SetSavedNumber(FB_CityKey("FROZEN", playerID, city), -1)
+        end
+        if order.kind ~= "LEAGUE" then
+            FB_ClearLeagueOverflow(city)
+        end
+        FB_SetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), city:GetFood())
+    end
+end
+
+local function FB_CityCanBuyAnyPlot(playerID, cityID)
+    return not FB_IsFleshbornPlayer(Players[playerID])
+end
+
+local function FB_CityCanBuyPlot(playerID, cityID, x, y)
+    return not FB_IsFleshbornPlayer(Players[playerID])
+end
+
+local function FB_UnitCanUpgrade(playerID, unitID)
+    return not FB_IsFleshbornPlayer(Players[playerID])
+end
+
+local function FB_CanStartMission(playerID, unitID, missionType)
+    if FB_IsFleshbornPlayer(Players[playerID]) and missionType == MISSION_HURRY then
+        return false
+    end
+    return true
+end
+
+local function FB_PlayerCanCreateTradeRoute(fromPlayerID, fromCityID, toPlayerID, toCityID, domainType, connectionType)
+    if FB_IsFleshbornPlayer(Players[fromPlayerID]) and fromPlayerID == toPlayerID then
+        return connectionType == TRADE_CONNECTION_FOOD
+    end
+    return true
+end
+
+local function FB_OnUnitCaptureType(playerID, unitID, unitType, byCivilization)
+    if byCivilization ~= CIV_FLESHBORN then return unitType end
+    return FB_GetFleshbornUnitForClass(unitType) or unitType
+end
+
+local function FB_OnCityCaptureComplete(oldOwnerID, isCapital, x, y, newOwnerID)
+    local player = Players[newOwnerID]
+    if not FB_IsFleshbornPlayer(player) then return end
+    local plot = Map.GetPlot(x, y)
+    local city = plot and plot:GetPlotCity() or nil
+    if city == nil or city:GetOwner() ~= newOwnerID then return end
+
+    FB_EnsurePlayerInvariants(player)
+    FB_UpdateCityDummies(newOwnerID, player, city)
+    FB_SetProduction(city, 0)
+    FB_ClearLeagueOverflow(city)
+    FB_SetSavedNumber(FB_CityKey("FROZEN", newOwnerID, city), -1)
+    FB_SetSavedNumber(FB_CityKey("BASE_FOOD", newOwnerID, city), city:GetFood())
+end
+
 GameEvents.PlayerDoTurn.Add(FB_ProcessPlayerTurn)
 GameEvents.CityCanConstruct.Add(FB_CityCanConstruct)
 GameEvents.CityCanTrain.Add(FB_CityCanTrain)
@@ -799,11 +1189,50 @@ end
 if GameEvents.CityConstructed ~= nil then
     GameEvents.CityConstructed.Add(FB_OnCityConstructed)
 end
+if GameEvents.CityCreated ~= nil then
+    GameEvents.CityCreated.Add(FB_OnCityCreated)
+end
 if GameEvents.PlayerBuilt ~= nil then
     GameEvents.PlayerBuilt.Add(FB_OnPlayerBuilt)
 end
 if GameEvents.UnitPrekill ~= nil then
     GameEvents.UnitPrekill.Add(FB_OnUnitPrekill)
+end
+if GameEvents.SetPopulation ~= nil then
+    GameEvents.SetPopulation.Add(FB_OnSetPopulation)
+end
+if GameEvents.PlayerDoneTurn ~= nil then
+    GameEvents.PlayerDoneTurn.Add(FB_OnPlayerDoneTurn)
+end
+if GameEvents.CityCanBuyAnyPlot ~= nil then
+    GameEvents.CityCanBuyAnyPlot.Add(FB_CityCanBuyAnyPlot)
+end
+if GameEvents.CityCanBuyPlot ~= nil then
+    GameEvents.CityCanBuyPlot.Add(FB_CityCanBuyPlot)
+end
+if GameEvents.CanHaveAnyUpgrade ~= nil then
+    GameEvents.CanHaveAnyUpgrade.Add(FB_UnitCanUpgrade)
+end
+if GameEvents.UnitCanHaveAnyUpgrade ~= nil then
+    GameEvents.UnitCanHaveAnyUpgrade.Add(FB_UnitCanUpgrade)
+end
+if GameEvents.CanHaveUpgrade ~= nil then
+    GameEvents.CanHaveUpgrade.Add(FB_UnitCanUpgrade)
+end
+if GameEvents.UnitCanHaveUpgrade ~= nil then
+    GameEvents.UnitCanHaveUpgrade.Add(FB_UnitCanUpgrade)
+end
+if GameEvents.CanStartMission ~= nil then
+    GameEvents.CanStartMission.Add(FB_CanStartMission)
+end
+if GameEvents.PlayerCanCreateTradeRoute ~= nil then
+    GameEvents.PlayerCanCreateTradeRoute.Add(FB_PlayerCanCreateTradeRoute)
+end
+if GameEvents.UnitCaptureType ~= nil then
+    GameEvents.UnitCaptureType.Add(FB_OnUnitCaptureType)
+end
+if GameEvents.CityCaptureComplete ~= nil then
+    GameEvents.CityCaptureComplete.Add(FB_OnCityCaptureComplete)
 end
 
 -- Make the production suppression and visible city yields correct immediately
@@ -812,10 +1241,12 @@ local function FB_Initialize()
     for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         local player = Players[playerID]
         if FB_IsFleshbornPlayer(player) then
+            FB_EnsurePlayerInvariants(player)
+            FB_NormalizeUnits(player)
             for city in player:Cities() do
                 FB_UpdateCityDummies(playerID, player, city)
+                FB_SetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), city:GetFood())
             end
-            FB_UpdateMaintenanceRefund(player)
         end
     end
 end

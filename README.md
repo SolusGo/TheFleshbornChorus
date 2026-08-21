@@ -24,7 +24,7 @@ The Fleshborn Chorus is a deliberately extreme pure-Food civilization. Food is p
 
 ## All Is Sustenance
 
-The Chorus cannot spend normal Production and cannot construct World Wonders. Every Brood Node has an invisible `-100% Production` metabolic state. Mines, quarries, workshops, chops, and other sources of hammers cannot advance a Fleshborn order.
+The Chorus cannot spend normal Production and cannot construct World Wonders. Every Brood Node has an invisible `-100% Production` metabolic state plus a dynamic sink that cancels its whole raw hammer yield; the Food ledger restores only its own exact saved progress, so fractional engine Production and positive modifiers cannot reopen the economy. Mines, quarries, workshops, chops, and other sources of hammers cannot advance a Fleshborn order.
 
 Instead, choose what the city should grow:
 
@@ -34,10 +34,13 @@ Instead, choose what the city should grow:
 | **Unit** | 100% of its normal Production cost | Food becomes unit progress; population growth freezes |
 | **Building / Project** | 125% of its normal Production cost | Food becomes project progress; population growth freezes |
 | **Colony Bud** | 120% of Settler cost | Also removes 1 Population when completed |
+| **World Congress project** | 1 Food per contribution | Food is staged as isolated Congress overflow; population growth freezes |
 
 The production list is the Growth Queue. Select the explicit **Grow Population** process when a city should grow Citizens. Select a unit or building when its surplus should be diverted into a project. The normal CityView still uses hammer-shaped widgets in this placeholder release; the **Chorus metabolism button** near the top-right of the main screen shows the actual Food allocation and estimated Food cost.
 
-The **Digestive Chamber** reduces every project’s Food cost by 10% in its city.
+The **Digestive Chamber** reduces every unit, building, and normal project’s Food cost by 10% in its city. Congress contributions remain a direct 1:1 conversion.
+
+Population growth is stopped at the population-change callback while any project is selected, and the pre-turn Food store is restored immediately. Unit, building, and project completion also requires a short-lived authorization written by the Food ledger. This closes normal hammers, feature chops, Great Engineer hurry, purchases, and other direct-Production completion paths rather than repairing their effects a turn later.
 
 ### What “surplus Food” means
 
@@ -63,7 +66,7 @@ Every city consumes:
 - **0.5 Food per Citizen**, rounded up per city;
 - **1 additional Food per Specialist**.
 
-The trait removes ordinary city and population unhappiness, unit maintenance, and improvement/road maintenance. Lua refunds remaining building maintenance in the capital before Gold digestion. Occupied cities are treated as organs, not discontented populations.
+The trait removes ordinary city and population unhappiness plus military and improvement maintenance. A hidden Community Patch dummy policy zeros universal unit upkeep—including civilian and air units—and supplies the purchase gates. Lua clamps the treasury’s real base building maintenance to zero at load, construction, capture, turn processing, and end turn, with the same policy providing a -100% building fallback. The policy is excluded from policy count, score, policy cost, and ideology checks. The DLL clamps unit upkeep and base building maintenance at zero, so no nominal Gold refund or negative-maintenance income is created. Occupied cities are treated as organs, not discontented populations.
 
 This makes wide expansion expensive in the same currency used for everything else. A new Brood Node is a mouth before it is a stomach.
 
@@ -98,7 +101,7 @@ This creates the intended counterplay: pillage Feeding Fields, Plantations, Fish
 
 Horses, Iron, Coal, Oil, Aluminum, and Uranium are inedible map objects. The Chorus does not need them.
 
-At database load, the mod finds every default unit in the active BNW/Community Patch roster that requires a strategic resource and creates a civ-specific biological copy without that requirement. The copy keeps the original model, icon, combat statistics, AI roles, promotions, prerequisites, and upgrade path. Common copies receive biological names such as:
+At database load, the mod finds every default unit and building in the active BNW/Community Patch roster that consumes a strategic resource and creates a civ-specific biological copy without that requirement. Copies retain the active rules and stock placeholder presentation. Unit copies keep their combat statistics, AI roles, promotions, prerequisites, and upgrade path. Common unit copies receive biological names such as:
 
 - Hunter Beast;
 - Ripper Form;
@@ -109,7 +112,9 @@ At database load, the mod finds every default unit in the active BNW/Community P
 - Apex Warform;
 - Star Womb and Void Heart.
 
-This dynamic roster also handles Community Patch changes and spaceship components without granting fake strategic resources to the player.
+This dynamic roster also handles Community Patch changes and spaceship components without granting fake strategic resources to the player. Resource-consuming infrastructure receives biological equivalents as well: Factory becomes **Industrial Stomach**, Hydro Plant becomes **Current Organ**, Nuclear Plant becomes **Fission Cyst**, and Spaceship Factory becomes **Ascension Womb**. Captured or gifted cities normalize base versions into the Chorus replacement before resource consumption is evaluated.
+
+Captured units use the Community Patch capture-type hook to become the Chorus replacement for their unit class. Gifted and pre-existing foreign units are normalized on the next metabolic update, preserving their state through the DLL conversion routine. Captured Workers therefore become Harvesters, while captured strategic units cannot leave a hidden Iron, Oil, or Aluminum dependency behind. Conventional Gold upgrades are disabled: later organisms must be grown through Food.
 
 ## Gold, Faith, and religion
 
@@ -120,8 +125,11 @@ Gold and Faith cannot become secondary economies.
 - Converted Food is spread as evenly as possible across all Brood Nodes.
 - Unconverted remainders stay in the treasury until another complete conversion is possible.
 - The Chorus cannot found a Pantheon or Religion.
+- Gold/Faith unit and building purchases, automatic Faith purchases, Gold unit upgrades, and Gold tile purchases are disabled.
 
 Trade deals, foreign trade routes, city-state rewards, and Great Merchant Gold are therefore not completely worthless, but they are badly inefficient beside agriculture. Science and Culture remain normal progression outputs.
+
+Internal Production and internal Gold routes are unavailable; the Chorus can send Food internally. International routes remain available, with any Gold they return entering normal digestion.
 
 ## Unique components
 
@@ -183,6 +191,10 @@ Golden Ages function as **Blooming Cycles** and give every Brood Node +10% Food.
 
 Luxury Happiness remains visible in the stock interface, but its normal per-turn contribution to the Golden Age meter is removed. Golden Age points from policies, wonders, and Great People still work, so Blooming Cycles remain possible without turning luxuries into a second managed economy.
 
+The Golden Age filter uses a one-turn meter reservation instead of subtracting from the aggregate meter after the fact. The next Happiness tick pays back that reservation, while unrelated meter gains remain intact and Happiness cannot silently push the meter over its threshold first.
+
+The explicit growth process and active World Congress processes are the only processes available to the Chorus. World’s Fair, International Games, and International Space Station contributions consume Food and reach the normal League system, so their rewards and rankings remain compatible with Community Patch behavior. Congress conversion carries fractional hundredth-hammer credit or debt between turns, preserving the 1:1 rate over time without allowing rounding residue to become a second economy.
+
 Human players make a hard city-by-city choice between population and projects. AI players use an automated approximation of the design targets:
 
 - about 40% of usable Food goes to a selected project at peace;
@@ -194,7 +206,7 @@ The remainder stays available for AI population growth, preventing the normal AI
 
 ## Installation
 
-1. Install and enable the **Community Patch** for Civilization V: Brave New World.
+1. Install and enable the **Community Patch** for Civilization V: Brave New World. It is a hard manifest dependency; the Chorus will not load ahead of or without it.
 2. Copy this repository folder into:
 
    ```text
@@ -220,7 +232,7 @@ No custom audio is installed, audio reload is disabled, and the civilization’s
 ## Repository layout
 
 ```text
-The Fleshborn Chorus (v 1).modinfo  Mod manifest and CP load-order reference
+The Fleshborn Chorus (v 1).modinfo  Mod manifest and hard CP dependency
 SQL/00_Fleshborn_Core.sql           Civilization, units, buildings, improvement, promotions
 SQL/10_Fleshborn_Text.sql           English text and Civilopedia entries
 Lua/FleshbornCore.lua               Food economy and Community Patch event systems

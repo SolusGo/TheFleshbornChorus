@@ -5,7 +5,7 @@
 -- ============================================================================
 
 -- The Lua systems use these CP events.  Updating an absent option is harmless;
--- the Community Patch reference in the modinfo ensures the rows normally exist.
+-- the Community Patch dependency in the modinfo ensures the rows normally exist.
 CREATE TABLE IF NOT EXISTS CustomModOptions
 (Name TEXT PRIMARY KEY, Value INTEGER DEFAULT 1, Class INTEGER DEFAULT 5, DbUpdates INTEGER DEFAULT 0);
 UPDATE CustomModOptions
@@ -13,10 +13,13 @@ SET Value = 1
 WHERE Name IN (
   'EVENTS_CITY',
   'EVENTS_FOUND_RELIGION',
+  'EVENTS_PLAYER_TURN',
   'EVENTS_PLOT',
   'EVENTS_TILE_IMPROVEMENTS',
-  'EVENTS_UNIT_CREATED',
-  'EVENTS_UNIT_PREKILL'
+  'EVENTS_TRADE_ROUTES',
+  'EVENTS_UNIT_CAPTURE',
+  'EVENTS_UNIT_PREKILL',
+  'EVENTS_UNIT_UPGRADES'
 );
 
 -- --------------------------------------------------------------------------
@@ -41,6 +44,22 @@ VALUES
  'TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP',
  'TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_SHORT',
  -100, -100, -100, -100, -100, -100, 15);
+
+-- A CP dummy policy supplies engine-level invariants which cannot safely be
+-- emulated with yield refunds.  IsDummy keeps it out of the policy tree,
+-- policy counts, score, and ideology prerequisites.  Lua grants it only to
+-- the Chorus and also keeps automatic Faith purchasing disabled.
+INSERT INTO Policies
+(Type, Description, Civilopedia, Help, PolicyBranchType, CultureCost, GridX, GridY,
+ IsDummy, BuildingGoldMaintenanceMod, UnitGoldMaintenanceMod,
+ RouteGoldMaintenanceMod, UnitPurchaseCostModifier,
+ BuildingPurchaseCostModifier, PlotGoldCostMod, FaithCostModifier,
+ UnhappinessMod)
+VALUES
+('POLICY_FLESHBORN_INVARIANTS', 'TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_SHORT',
+ 'TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP',
+ 'TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP', NULL, -1, -1, -1,
+ 1, -100, -100, 0, 100000, 100000, 100000, 100000, -100);
 
 INSERT INTO Leaders
 (Type, Description, Civilopedia, CivilopediaTag, ArtDefineTag,
@@ -320,6 +339,79 @@ DROP TABLE Fleshborn_ResourceRoster;
 -- Buildings and hidden metabolic state
 -- --------------------------------------------------------------------------
 
+-- Resource-consuming default buildings receive the same treatment as units:
+-- a civ-specific biological copy with stock placeholder art and no strategic
+-- requirement.  The active CP row is copied so balance changes remain intact.
+CREATE TEMP TABLE Fleshborn_ResourceBuildingRoster AS
+SELECT
+ B.Type AS OldBuildingType,
+ 'BUILDING_FLESHBORN_BIO_' || SUBSTR(B.Type, 10) AS NewBuildingType,
+ B.BuildingClass AS BuildingClassType
+FROM Buildings B
+JOIN BuildingClasses BC ON BC.DefaultBuilding = B.Type
+WHERE EXISTS (
+  SELECT 1 FROM Building_ResourceQuantityRequirements R WHERE R.BuildingType = B.Type
+);
+
+CREATE TEMP TABLE Fleshborn_ResourceBuildingCopies AS
+SELECT B.*
+FROM Buildings B
+JOIN Fleshborn_ResourceBuildingRoster R ON R.OldBuildingType = B.Type;
+
+UPDATE Fleshborn_ResourceBuildingCopies SET
+ ID = NULL,
+ Type = (SELECT R.NewBuildingType FROM Fleshborn_ResourceBuildingRoster R
+         WHERE R.OldBuildingType = Fleshborn_ResourceBuildingCopies.Type),
+ GoldMaintenance = 0,
+ FaithCost = -1,
+ HurryCostModifier = -1;
+
+UPDATE Fleshborn_ResourceBuildingCopies SET
+ Description = CASE Type
+  WHEN 'BUILDING_FLESHBORN_BIO_FACTORY' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_FACTORY'
+  WHEN 'BUILDING_FLESHBORN_BIO_HYDRO_PLANT' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_HYDRO_PLANT'
+  WHEN 'BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT'
+  WHEN 'BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY'
+  ELSE Description
+ END,
+ Help = CASE Type
+  WHEN 'BUILDING_FLESHBORN_BIO_FACTORY' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_FACTORY_HELP'
+  WHEN 'BUILDING_FLESHBORN_BIO_HYDRO_PLANT' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_HYDRO_PLANT_HELP'
+  WHEN 'BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT_HELP'
+  WHEN 'BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY' THEN 'TXT_KEY_BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY_HELP'
+  ELSE Help
+ END;
+
+INSERT INTO Buildings SELECT * FROM Fleshborn_ResourceBuildingCopies;
+
+INSERT INTO Civilization_BuildingClassOverrides
+SELECT 'CIVILIZATION_FLESHBORN_CHORUS', BuildingClassType, NewBuildingType
+FROM Fleshborn_ResourceBuildingRoster;
+
+INSERT INTO Building_ClassesNeededInCity (BuildingType, BuildingClassType)
+SELECT R.NewBuildingType, X.BuildingClassType
+FROM Building_ClassesNeededInCity X
+JOIN Fleshborn_ResourceBuildingRoster R ON R.OldBuildingType = X.BuildingType;
+INSERT INTO Building_Flavors (BuildingType, FlavorType, Flavor)
+SELECT R.NewBuildingType, X.FlavorType, X.Flavor
+FROM Building_Flavors X
+JOIN Fleshborn_ResourceBuildingRoster R ON R.OldBuildingType = X.BuildingType;
+INSERT INTO Building_RiverPlotYieldChanges (BuildingType, YieldType, Yield)
+SELECT R.NewBuildingType, X.YieldType, X.Yield
+FROM Building_RiverPlotYieldChanges X
+JOIN Fleshborn_ResourceBuildingRoster R ON R.OldBuildingType = X.BuildingType;
+INSERT INTO Building_YieldChanges (BuildingType, YieldType, Yield)
+SELECT R.NewBuildingType, X.YieldType, X.Yield
+FROM Building_YieldChanges X
+JOIN Fleshborn_ResourceBuildingRoster R ON R.OldBuildingType = X.BuildingType;
+INSERT INTO Building_YieldModifiers (BuildingType, YieldType, Yield)
+SELECT R.NewBuildingType, X.YieldType, X.Yield
+FROM Building_YieldModifiers X
+JOIN Fleshborn_ResourceBuildingRoster R ON R.OldBuildingType = X.BuildingType;
+
+DROP TABLE Fleshborn_ResourceBuildingCopies;
+DROP TABLE Fleshborn_ResourceBuildingRoster;
+
 CREATE TEMP TABLE Fleshborn_DigestiveCopy AS
 SELECT * FROM Buildings WHERE Type = 'BUILDING_GRANARY';
 UPDATE Fleshborn_DigestiveCopy SET
@@ -354,19 +446,28 @@ INSERT INTO BuildingClasses
 ('BUILDINGCLASS_FLESHBORN_FIELD_FOOD', 'BUILDING_FLESHBORN_FIELD_FOOD', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', -1, -1, -1),
 ('BUILDINGCLASS_FLESHBORN_EDIBLE_FOOD', 'BUILDING_FLESHBORN_EDIBLE_FOOD', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', -1, -1, -1),
 ('BUILDINGCLASS_FLESHBORN_MEMORY', 'BUILDING_FLESHBORN_MEMORY', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', -1, -1, -1),
-('BUILDINGCLASS_FLESHBORN_MAINTENANCE', 'BUILDING_FLESHBORN_MAINTENANCE', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', -1, -1, -1),
+('BUILDINGCLASS_FLESHBORN_PRODUCTION_SINK', 'BUILDING_FLESHBORN_PRODUCTION_SINK', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', -1, -1, -1),
 ('BUILDINGCLASS_FLESHBORN_BLOOM', 'BUILDING_FLESHBORN_BLOOM', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', -1, -1, -1);
 
 INSERT INTO Buildings
 (Type, BuildingClass, Description, Help, Cost, FaithCost, GoldMaintenance,
  PrereqTech, NeverCapture, NukeImmune, ConquestProb, GreatWorkCount,
  NoOccupiedUnhappiness, UnhappinessModifier, PortraitIndex, IconAtlas) VALUES
-('BUILDING_FLESHBORN_METABOLISM', 'BUILDINGCLASS_FLESHBORN_METABOLISM', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM_HELP', -1, -1, 0, NULL, 1, 1, 0, -1, 1, -100, 0, 'BW_ATLAS_1'),
+('BUILDING_FLESHBORN_METABOLISM', 'BUILDINGCLASS_FLESHBORN_METABOLISM', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM_HELP', -1, -1, 0, NULL, 1, 1, 0, -1, 1, 0, 0, 'BW_ATLAS_1'),
 ('BUILDING_FLESHBORN_FIELD_FOOD', 'BUILDINGCLASS_FLESHBORN_FIELD_FOOD', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', NULL, -1, -1, 0, NULL, 1, 1, 0, -1, 0, 0, 0, 'BW_ATLAS_1'),
 ('BUILDING_FLESHBORN_EDIBLE_FOOD', 'BUILDINGCLASS_FLESHBORN_EDIBLE_FOOD', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', NULL, -1, -1, 0, NULL, 1, 1, 0, -1, 0, 0, 0, 'BW_ATLAS_1'),
 ('BUILDING_FLESHBORN_MEMORY', 'BUILDINGCLASS_FLESHBORN_MEMORY', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', NULL, -1, -1, 0, NULL, 1, 1, 0, -1, 0, 0, 0, 'BW_ATLAS_1'),
-('BUILDING_FLESHBORN_MAINTENANCE', 'BUILDINGCLASS_FLESHBORN_MAINTENANCE', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', NULL, -1, -1, 0, NULL, 1, 1, 0, -1, 0, 0, 0, 'BW_ATLAS_1'),
+('BUILDING_FLESHBORN_PRODUCTION_SINK', 'BUILDINGCLASS_FLESHBORN_PRODUCTION_SINK', 'TXT_KEY_BUILDING_FLESHBORN_METABOLISM', NULL, -1, -1, 0, NULL, 1, 1, 0, -1, 0, 0, 0, 'BW_ATLAS_1'),
 ('BUILDING_FLESHBORN_BLOOM', 'BUILDINGCLASS_FLESHBORN_BLOOM', 'TXT_KEY_BUILDING_FLESHBORN_BLOOM', 'TXT_KEY_BUILDING_FLESHBORN_BLOOM_HELP', -1, -1, 0, NULL, 1, 1, 0, -1, 0, 0, 0, 'BW_ATLAS_1');
+
+UPDATE Buildings SET IsDummy = 1 WHERE Type IN (
+ 'BUILDING_FLESHBORN_METABOLISM',
+ 'BUILDING_FLESHBORN_FIELD_FOOD',
+ 'BUILDING_FLESHBORN_EDIBLE_FOOD',
+ 'BUILDING_FLESHBORN_MEMORY',
+ 'BUILDING_FLESHBORN_PRODUCTION_SINK',
+ 'BUILDING_FLESHBORN_BLOOM'
+);
 
 INSERT INTO Building_YieldModifiers VALUES
 ('BUILDING_FLESHBORN_METABOLISM', 'YIELD_PRODUCTION', -100),
@@ -375,7 +476,7 @@ INSERT INTO Building_YieldChanges VALUES
 ('BUILDING_FLESHBORN_FIELD_FOOD', 'YIELD_FOOD', 1),
 ('BUILDING_FLESHBORN_EDIBLE_FOOD', 'YIELD_FOOD', 1),
 ('BUILDING_FLESHBORN_MEMORY', 'YIELD_CULTURE', 1),
-('BUILDING_FLESHBORN_MAINTENANCE', 'YIELD_GOLD', 1);
+('BUILDING_FLESHBORN_PRODUCTION_SINK', 'YIELD_PRODUCTION', -1);
 
 INSERT INTO Civilization_FreeBuildingClasses VALUES
 ('CIVILIZATION_FLESHBORN_CHORUS', 'BUILDINGCLASS_FLESHBORN_METABOLISM');
