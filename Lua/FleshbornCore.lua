@@ -17,7 +17,8 @@ local BUILDING_MEMORY = GameInfoTypes.BUILDING_FLESHBORN_MEMORY
 local BUILDING_PRODUCTION_SINK = GameInfoTypes.BUILDING_FLESHBORN_PRODUCTION_SINK
 local BUILDING_BLOOM = GameInfoTypes.BUILDING_FLESHBORN_BLOOM
 local POLICY_INVARIANTS = GameInfoTypes.POLICY_FLESHBORN_INVARIANTS
-local IMPROVEMENT_FEEDING_FIELD = GameInfoTypes.IMPROVEMENT_FLESHBORN_FEEDING_FIELD
+local IMPROVEMENT_FEEDING_FIELD_LEGACY = GameInfoTypes.IMPROVEMENT_FLESHBORN_FEEDING_FIELD
+local IMPROVEMENT_FARM = GameInfoTypes.IMPROVEMENT_FARM
 local IMPROVEMENT_PLANTATION = GameInfoTypes.IMPROVEMENT_PLANTATION
 local PROCESS_GROWTH = GameInfoTypes.PROCESS_FLESHBORN_GROWTH
 local BUILD_FARM = GameInfoTypes.BUILD_FARM
@@ -30,6 +31,8 @@ local BUILD_DIGEST_FOREST = GameInfoTypes.BUILD_FLESHBORN_DIGEST_FOREST
 local BUILD_DIGEST_JUNGLE = GameInfoTypes.BUILD_FLESHBORN_DIGEST_JUNGLE
 local BUILD_DIGEST_MARSH = GameInfoTypes.BUILD_FLESHBORN_DIGEST_MARSH
 local YIELD_PRODUCTION = GameInfoTypes.YIELD_PRODUCTION
+local TECH_CIVIL_SERVICE = GameInfoTypes.TECH_CIVIL_SERVICE
+local TECH_FERTILIZER = GameInfoTypes.TECH_FERTILIZER
 local TRADE_CONNECTION_FOOD = TradeConnectionTypes.TRADE_CONNECTION_FOOD
 local FB_FOUNDING_CORE_FOOD = 4
 
@@ -221,12 +224,19 @@ local function FB_IsWorkedBy(city, plot)
     return plot:GetWorkingCity() == city
 end
 
+local function FB_IsFeedingField(plot)
+    if plot == nil then return false end
+    local improvementType = plot:GetImprovementType()
+    return improvementType == IMPROVEMENT_FARM
+        or improvementType == IMPROVEMENT_FEEDING_FIELD_LEGACY
+end
+
 local function FB_CountAdjacentFeedingFields(plot)
     local count = 0
     for direction = 0, 5 do
         local adjacent = Map.PlotDirection(plot:GetX(), plot:GetY(), direction)
         if adjacent ~= nil
-            and adjacent:GetImprovementType() == IMPROVEMENT_FEEDING_FIELD
+            and FB_IsFeedingField(adjacent)
             and not adjacent:IsImprovementPillaged() then
             count = count + 1
         end
@@ -287,7 +297,13 @@ local function FB_UpdateCityDummies(playerID, player, city)
     )
 
     local adjacencyFood = 0
+    local fieldRuleFood = 0
     local edibleFood = 0
+    local team = Teams[player:GetTeam()]
+    local hasCivilService = team ~= nil and TECH_CIVIL_SERVICE ~= nil
+        and team:IsHasTech(TECH_CIVIL_SERVICE)
+    local hasFertilizer = team ~= nil and TECH_FERTILIZER ~= nil
+        and team:IsHasTech(TECH_FERTILIZER)
 
     for index = 0, city:GetNumCityPlots() - 1 do
         local plot = city:GetCityIndexPlot(index)
@@ -295,9 +311,25 @@ local function FB_UpdateCityDummies(playerID, player, city)
             and plot:GetOwner() == playerID
             and FB_IsWorkedBy(city, plot)
             and not plot:IsImprovementPillaged() then
-            if plot:GetImprovementType() == IMPROVEMENT_FEEDING_FIELD
-                and FB_CountAdjacentFeedingFields(plot) >= 3 then
-                adjacencyFood = adjacencyFood + 1
+            if FB_IsFeedingField(plot) then
+                local freshWater = plot:IsFreshWater()
+
+                -- The stock CP Farm already supplies its base Food, the Civil
+                -- Service bonus on fresh water, and the Fertilizer bonus away
+                -- from fresh water.  Add only the missing halves of the
+                -- Feeding Field rules so the city still receives +1 for fresh
+                -- water and both technology bonuses on every worked field.
+                if freshWater then fieldRuleFood = fieldRuleFood + 1 end
+                if hasCivilService and not freshWater then
+                    fieldRuleFood = fieldRuleFood + 1
+                end
+                if hasFertilizer and freshWater then
+                    fieldRuleFood = fieldRuleFood + 1
+                end
+
+                if FB_CountAdjacentFeedingFields(plot) >= 3 then
+                    adjacencyFood = adjacencyFood + 1
+                end
             end
 
             if plot:GetImprovementType() == IMPROVEMENT_PLANTATION
@@ -307,8 +339,35 @@ local function FB_UpdateCityDummies(playerID, player, city)
         end
     end
 
-    FB_SetBuildingCount(city, BUILDING_FIELD_FOOD, adjacencyFood)
+    FB_SetBuildingCount(city, BUILDING_FIELD_FOOD, fieldRuleFood + adjacencyFood)
     FB_SetBuildingCount(city, BUILDING_EDIBLE_FOOD, edibleFood)
+end
+
+local function FB_MigrateLegacyFeedingFields()
+    if IMPROVEMENT_FEEDING_FIELD_LEGACY == nil
+        or IMPROVEMENT_FARM == nil
+        or IMPROVEMENT_FEEDING_FIELD_LEGACY == IMPROVEMENT_FARM then
+        return
+    end
+
+    local migrated = 0
+    for plotIndex = 0, Map.GetNumPlots() - 1 do
+        local plot = Map.GetPlotByIndex(plotIndex)
+        if plot ~= nil
+            and plot:GetImprovementType() == IMPROVEMENT_FEEDING_FIELD_LEGACY then
+            local pillaged = plot:IsImprovementPillaged()
+            plot:SetImprovementType(IMPROVEMENT_FARM)
+            if pillaged and plot.SetImprovementPillaged ~= nil then
+                plot:SetImprovementPillaged(true)
+            end
+            migrated = migrated + 1
+        end
+    end
+
+    if migrated > 0 then
+        print("Fleshborn: migrated " .. tostring(migrated)
+            .. " legacy Feeding Fields to visible stock Farms")
+    end
 end
 
 local function FB_EnsurePlayerInvariants(player)
@@ -1436,6 +1495,10 @@ end
 -- Make the production suppression and visible city yields correct immediately
 -- after a save loads; project conversion itself waits for PlayerDoTurn.
 local function FB_Initialize()
+    -- Existing saves may contain the distinct, invisible improvement used by
+    -- earlier versions.  Convert it before city yields are calculated; new
+    -- Harvester builds already place the real Farm type directly.
+    FB_MigrateLegacyFeedingFields()
     for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         local player = Players[playerID]
         if FB_IsFleshbornPlayer(player) then

@@ -596,10 +596,11 @@ INSERT INTO Process_Flavors VALUES
 -- Feeding Field and Harvester build actions
 -- --------------------------------------------------------------------------
 
--- The landmark renderer can ignore a newly cloned art tag even when its rows
--- are present in the gameplay database.  Reuse the stock Farm tag directly;
--- this guarantees the same construction, completed, pillaged, resource, and
--- era models as a normal Farm without requiring custom GR2/FXSXML assets.
+-- Keep a custom improvement row for the Civilopedia and interface portrait,
+-- but place the genuine stock Farm on the map.  Civ V's landmark renderer can
+-- ignore a distinct improvement even when that row points directly at the
+-- Farm art tag.  A real IMPROVEMENT_FARM is the only renderer-proof way to
+-- guarantee its construction, completed, pillaged, resource, and era models.
 DELETE FROM ArtDefine_StrategicView
 WHERE StrategicViewType = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD';
 DELETE FROM ArtDefine_Landmarks
@@ -652,7 +653,7 @@ UPDATE Fleshborn_FeedingBuildCopy SET
  Description = 'TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD',
  Help = 'TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_HELP',
  Recommendation = 'TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_REC',
- ImprovementType = 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD',
+ ImprovementType = 'IMPROVEMENT_FARM',
  IconIndex = 12,
  IconAtlas = 'FLESHBORN_ICON_ATLAS';
 INSERT INTO Builds SELECT * FROM Fleshborn_FeedingBuildCopy;

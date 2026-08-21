@@ -101,6 +101,12 @@ def main() -> None:
                 """SELECT COUNT(*) FROM ArtDefine_Landmarks
                    WHERE ImprovementType = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD'""",
             ) == 0
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Builds
+                   WHERE Type = 'BUILD_FLESHBORN_FEEDING_FIELD'
+                   AND ImprovementType = 'IMPROVEMENT_FARM'""",
+            ) == 1
             portrait_tables = (
                 ("Units", "PortraitIndex"),
                 ("Buildings", "PortraitIndex"),

@@ -163,7 +163,7 @@ Gold and Faith ruins remain available and enter normal digestion. Culture, Techn
 
 ### Feeding Field
 
-Replaces the Farm and points directly to the stock `ART_DEF_IMPROVEMENT_FARM` landmark tag. Construction, completed, pillaged, resource, era, and Strategic View states therefore use the exact normal Farm graphics without requiring a custom GR2 or FXSXML model. A direct stock tag is used because Civ V's landmark renderer can ignore otherwise-valid cloned improvement-art tags.
+Replaces the Farm through a Fleshborn-only Harvester action. The map uses Civ V's proven stock agricultural landmark internally, while Chorus Lua treats it entirely as a Feeding Field. This guarantees the completed, pillaged, resource, era, and Strategic View graphics without requiring a custom GR2 or FXSXML model. Earlier attempts using both cloned and direct stock art tags were valid in the database but were ignored by Civ V's landmark renderer.
 
 - +1 Food base;
 - +1 Food with Fresh Water;
@@ -173,7 +173,7 @@ Replaces the Farm and points directly to the stock `ART_DEF_IMPROVEMENT_FARM` la
 - may be constructed while preserving Marsh;
 - Sugar, Bananas, and Citrus worked under a Plantation provide +2 additional Food to the city.
 
-The adjacency yield is applied through a hidden city Food counter, so it is included in city output even though the stock tile tooltip cannot display the custom adjacency line.
+The Harvester button, Civilopedia, and completed map tooltip all call it **Feeding Field** and use the custom portrait where Civ V permits one. A context-sensitive UI layer changes only Chorus-owned agricultural plots; other civilizations continue to see their ordinary Farms. Fresh Water, universal technology scaling, and adjacency differences are applied through a hidden city Food counter, so they are included in city output even though the stock tile tooltip cannot display those custom yield lines.
 
 ### Digestive Chamber
 

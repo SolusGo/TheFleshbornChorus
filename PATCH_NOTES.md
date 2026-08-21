@@ -1,5 +1,14 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-22 — Renderer-proof Feeding Fields
+
+- Changed the Fleshborn-only construction action to place Civ V's genuine `IMPROVEMENT_FARM` on the map. The game loaded the prior direct Farm art tag correctly but its landmark renderer still refused to draw the distinct improvement type.
+- Kept the Feeding Field build name, custom icon, Civilopedia entry, Harvester restriction, Food scaling, and worked-field adjacency rules; Fleshborn-owned Farms are now treated as Feeding Fields by Lua.
+- Preserved the intended +1 Fresh Water, Civil Service, Fertilizer, and adjacency Food rules by adding only the bonuses missing from the active Community Patch Farm yield.
+- Added automatic save migration: legacy invisible Feeding Fields become visible stock Farms when a save finishes loading, including pillaged fields. A new game is not required.
+- Added a context-sensitive CP hex-tooltip layer so the rendered improvement is still called **Feeding Field** in game. Only Chorus-owned fields are relabeled; ordinary Farms belonging to other civilizations are unchanged.
+- Extended database validation to require the custom Harvester action to produce a real Farm.
+
 ## 2026-08-22 — Feeding Field renderer fallback and icon audit
 
 - Replaced the Feeding Field's cloned landmark tag with a direct reference to Civ V's stock `ART_DEF_IMPROVEMENT_FARM` tag. The cloned rows existed correctly in the database but the landmark renderer still ignored the new tag; direct reuse now takes the exact normal Farm construction, completed, pillaged, resource, era, and Strategic View graphics.

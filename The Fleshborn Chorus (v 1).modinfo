@@ -28,6 +28,7 @@
     <File import="1">Lua\FleshbornCore.lua</File>
     <File import="1">UI\FleshbornStatusPanel.lua</File>
     <File import="1">UI\FleshbornStatusPanel.xml</File>
+    <File import="1">UI\FleshbornPlotLabels.lua</File>
     <File import="1">Art\Fleshborn_LeaderScene.xml</File>
     <File import="1">Art\Atlases\Fleshborn_Civ_256.dds</File>
     <File import="1">Art\Atlases\Fleshborn_Civ_128.dds</File>
@@ -69,6 +70,10 @@
     <EntryPoint type="InGameUIAddin" file="UI\FleshbornStatusPanel.xml">
       <Name>Fleshborn Metabolism Panel</Name>
       <Description>Displays the active Chorus player's biological economy.</Description>
+    </EntryPoint>
+    <EntryPoint type="InGameUIAddin" file="UI\FleshbornPlotLabels.lua">
+      <Name>Fleshborn Plot Labels</Name>
+      <Description>Labels visible stock Farm art as Feeding Fields on Chorus-owned plots.</Description>
     </EntryPoint>
   </EntryPoints>
 </Mod>

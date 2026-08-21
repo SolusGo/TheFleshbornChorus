@@ -50,6 +50,12 @@
         <Description>Displays the active Chorus player's biological economy.</Description>
         <FileName>UI/FleshbornStatusPanel.xml</FileName>
       </Content>
+      <Content>
+        <Type>InGameUIAddin</Type>
+        <Name>Fleshborn Plot Labels</Name>
+        <Description>Labels visible stock Farm art as Feeding Fields on Chorus-owned plots.</Description>
+        <FileName>UI/FleshbornPlotLabels.lua</FileName>
+      </Content>
     </ModContent>
     <ModVersion>1</ModVersion>
     <Stability>Alpha</Stability>
@@ -86,6 +92,10 @@
       <ImportIntoVFS>False</ImportIntoVFS>
     </Content>
     <Content Include="UI\FleshbornStatusPanel.lua">
+      <SubType>Lua</SubType>
+      <ImportIntoVFS>False</ImportIntoVFS>
+    </Content>
+    <Content Include="UI\FleshbornPlotLabels.lua">
       <SubType>Lua</SubType>
       <ImportIntoVFS>False</ImportIntoVFS>
     </Content>
