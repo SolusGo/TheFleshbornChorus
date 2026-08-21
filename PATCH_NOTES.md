@@ -1,5 +1,18 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — City-state and progression compatibility audit
+
+- Blocked Gold gifts, Gold-funded city-state tile improvements, and diplomatic buyouts for the Chorus, closing city-state spending paths that existed outside the ordinary city purchase hooks.
+- Added immediate digestion for city-state first-contact gifts and Gold tribute. Militaristic gifts and tribute units now normalize to their biological unit-class replacement immediately.
+- Preserved quests, influence, spies, elections, alliances, unit gifting, bullying, and diplomatic victory interactions. Food, Science, Culture, free-unit, free-building, and Population rewards remain valid, while Production still cannot authorize a queue completion.
+- Verified the hidden invariant policy remains a Community Patch dummy and does not affect policy costs, branch completion, score, or ideology eligibility.
+- Verified Factory-gated ideology effects use the building class and therefore recognize the Industrial Stomach replacement.
+- Kept policy and ideology effects that directly convert Happiness into Science or Culture as progression bonuses; they do not restore Happiness as a construction, upkeep, purchasing, expansion, or passive Golden Age economy.
+- Fixed human puppets spending their entire usable Food on an autonomous order and then having all population growth rolled back. Puppets and AI cities now apply their intended partial project allocation and can grow from the remainder.
+- Added cleanup and initialization for peacefully transferred, conquered, and liberated cities so hidden metabolic buildings cannot leak to a non-Chorus owner or be absent from a restored Chorus city.
+- Fixed the metabolism panel's repeated `CalculateSize` Lua error by allowing its wrapped label to size itself before the scroll panel recalculates.
+- Corrected the ModBuddy project to this installation's actual Civilization V path.
+
 ## 2026-08-21 — Feeding Field map graphics
 
 - Fixed completed Feeding Fields appearing without a worked improvement model on the world map.
@@ -166,8 +179,9 @@ The first playable Community Patch release establishes the complete core loop: F
 - The stock CityView still calls the order list “Production” and displays hammer-shaped cost/progress widgets. The metabolism panel is authoritative for Food costs.
 - Feeding Field adjacency is a hidden city yield. The bonus appears in total city Food but not on the individual tile tooltip.
 - The normal top bar remains visible. Gold and Faith are digested at the start of the Chorus turn rather than being graphically removed from the top bar.
-- Gold or Faith received during the active turn can briefly exist until the next metabolic update, but purchase, tile-buy, automatic-Faith, upgrade, and completion gates prevent it becoming a spending window. Ordinary conversion leaves at most 3 Gold and 2 Faith.
+- Gold or Faith received during the active turn can briefly exist until the next metabolic update, except first-contact and tribute Gold which are digested immediately. Purchase, city-state spending, tile-buy, automatic-Faith, upgrade, and completion gates prevent it becoming a spending window. Ordinary conversion leaves at most 3 Gold and 2 Faith.
 - Happiness UI remains visible even though standard city/population unhappiness is neutralized and its per-turn Golden Age contribution is removed.
+- Policy and tenet effects that explicitly convert Happiness into Science or Culture remain active for compatibility. This is a narrow exception to the fiction that luxuries are wholly irrelevant, but it does not make Happiness spendable or restore its normal expansion and Golden Age roles.
 - Conquered buildings without a Fleshborn class override keep their normal definitions; their maintenance is suppressed rather than refunded. Granaries and strategic-resource infrastructure normalize into their biological replacements.
 - Great People retain stock names and mission UI. Great Merchant Gold is handled by normal 4:1 digestion rather than a bespoke Foraging Migration mission.
 - Foreign trade routes keep their stock yield display; Gold is subsequently digested and Science remains normal.

@@ -158,7 +158,6 @@ local function FB_Refresh()
     end
 
     Controls.CityStatusLabel:SetText(table.concat(cityBlocks, "[NEWLINE][NEWLINE]------------------------------------------------------------[NEWLINE][NEWLINE]"))
-    Controls.CityStatusLabel:CalculateSize()
     Controls.CityScrollPanel:CalculateInternalSize()
     Controls.FooterLabel:SetText(
         "4 Gold = 1 Food  //  3 Faith = 1 Food  //  building maintenance clamped to 0"

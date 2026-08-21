@@ -13,7 +13,7 @@
     <Homepage>https://github.com/SolusGo/TheFleshbornChorus</Homepage>
     <AssemblyName>TheFleshbornChorus</AssemblyName>
     <RootNamespace>TheFleshbornChorus</RootNamespace>
-    <Civ5Path>C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization V</Civ5Path>
+    <Civ5Path>G:\SteamLibrary\steamapps\common\Sid Meier's Civilization V</Civ5Path>
     <Civ5UserPath>C:\Users\ThatOneYi\Documents\My Games\Sid Meier's Civilization 5</Civ5UserPath>
     <AffectsSavedGames>true</AffectsSavedGames>
     <MinCompatibleSaveVersion>0</MinCompatibleSaveVersion>

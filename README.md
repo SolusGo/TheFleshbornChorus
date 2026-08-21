@@ -133,6 +133,22 @@ Trade deals, foreign trade routes, city-state rewards, and Great Merchant Gold a
 
 Internal Production and internal Gold routes are unavailable; the Chorus can send Food internally. International routes remain available, with any Gold they return entering normal digestion.
 
+## City-states, policies, and ideologies
+
+The normal diplomatic and progression systems remain playable, but they cannot reopen the suppressed currencies:
+
+- Gold gifts, Gold-funded city-state tile improvements, and diplomatic-marriage/buyout actions are unavailable because the Chorus cannot spend Gold. Unit gifts, quests, influence, spies, elections, bullying, alliances, and the diplomatic victory remain available.
+- Gold or Faith received from first contact, tribute, quests, alliances, policies, tenets, or events enters normal digestion. Production rewards are discarded by the Production sink and cannot authorize a queue completion.
+- Militaristic city-state gifts and tribute units are normalized to the Chorus unit-class replacement immediately, then add their normal army feeding requirement.
+- Maritime Food and other direct Food rewards remain useful. Direct Science and Culture rewards remain normal progression outputs.
+- All policy trees and ideologies remain available. The hidden invariant policy is a Community Patch dummy and does not count toward policy cost, score, branch completion, or ideology eligibility.
+- Policy and ideology modifiers to Production, Gold, Faith, maintenance, strategic resources, or purchases cannot bypass the Food ledger. Direct Food, Science, Culture, Population, free-unit, and free-building effects remain legitimate progression rewards; anything they add is subject to metabolism on later turns.
+- Factory-count ideology gates recognize the Chorus's Industrial Stomach because it is the civilization's Factory-class replacement.
+
+Human puppets use the automated city allocation rather than the manual all-or-nothing growth rule. They spend only a share of usable Food on their autonomous order and may grow from the remainder. Annexed cities return to the normal manual choice. Peaceful transfers, conquest, and liberation also clear or initialize hidden metabolic state for the new owner, preventing foreign cities from retaining Chorus yield modifiers.
+
+One narrow compatibility exception is intentional: policy or tenet effects that explicitly turn Happiness into Science or Culture remain progression bonuses. Happiness still cannot constrain expansion, fund an order, purchase anything, pay upkeep, or provide its normal passive Golden Age progress.
+
 ## Ancient Ruins
 
 Ancient Ruins cannot open a second economy or bypass the growth queue. The Community Patch reward-choice hook automatically removes these results from the Chorus's eligible reward pool and rerolls the ruin:

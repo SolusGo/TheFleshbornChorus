@@ -104,6 +104,21 @@ local FB_KILL_CACHE_TURN = -1
 local FB_POPULATION_ROLLBACK = false
 local FB_UNIT_CONVERSION = false
 local FB_BALANCE_VP = Game.IsCustomModOption ~= nil and Game.IsCustomModOption("BALANCE_VP")
+local FB_CITY_DUMMIES = {}
+for _, buildingType in ipairs({
+    "BUILDING_FLESHBORN_METABOLISM",
+    "BUILDING_FLESHBORN_FOUNDING_CORE",
+    "BUILDING_FLESHBORN_FIELD_FOOD",
+    "BUILDING_FLESHBORN_EDIBLE_FOOD",
+    "BUILDING_FLESHBORN_MEMORY",
+    "BUILDING_FLESHBORN_PRODUCTION_SINK",
+    "BUILDING_FLESHBORN_BLOOM"
+}) do
+    local buildingID = GameInfoTypes[buildingType]
+    if buildingID ~= nil then
+        table.insert(FB_CITY_DUMMIES, buildingID)
+    end
+end
 
 MapModData.FleshbornStatus = MapModData.FleshbornStatus or {}
 
@@ -158,6 +173,25 @@ local function FB_SetBuildingCount(city, buildingID, count)
     if city:GetNumRealBuilding(buildingID) ~= realTarget then
         city:SetNumRealBuilding(buildingID, realTarget)
     end
+end
+
+local function FB_ClearCityDummies(city)
+    if city == nil then return end
+    for _, buildingID in ipairs(FB_CITY_DUMMIES) do
+        if (city:GetNumRealBuilding(buildingID) or 0) > 0 then
+            city:SetNumRealBuilding(buildingID, 0)
+        end
+        if (city:GetNumFreeBuilding(buildingID) or 0) > 0 then
+            city:SetNumFreeBuilding(buildingID, 0)
+        end
+    end
+end
+
+local function FB_IsManualCity(player, city)
+    -- Human puppets have no usable production chooser. Treat them like AI
+    -- cities so they retain population growth while autonomously growing an
+    -- order instead of spending their complete surplus every turn.
+    return player ~= nil and city ~= nil and player:IsHuman() and not city:IsPuppet()
 end
 
 local function FB_SetFood(city, target)
@@ -470,6 +504,16 @@ local function FB_DigestCurrency(playerID, player, cities)
     return food
 end
 
+local function FB_DigestAvailableCurrency(playerID)
+    local player = Players[playerID]
+    if not FB_IsFleshbornPlayer(player) then return 0 end
+    local cities = {}
+    for city in player:Cities() do
+        table.insert(cities, city)
+    end
+    return FB_DigestCurrency(playerID, player, cities)
+end
+
 local function FB_IsPlayerAtWar(player)
     local team = Teams[player:GetTeam()]
     if team == nil then return false end
@@ -507,9 +551,9 @@ local function FB_SuppressHappinessGoldenAge(playerID, player)
     FB_SetSavedNumber(reserveKey, nextReserve)
 end
 
-local function FB_GetFoodToSpend(player, order, availableFood)
+local function FB_GetFoodToSpend(player, city, order, availableFood)
     local foodToSpend = availableFood
-    if not player:IsHuman() then
+    if not FB_IsManualCity(player, city) then
         local ratio = 0.40
         if order.kind == "UNIT" and order.id == UNIT_BUD then
             ratio = 0.60
@@ -531,7 +575,7 @@ local function FB_ApplyFoodProject(playerID, player, city, order, availableFood,
         return 0, 0, FB_GetFoodMultiplier(city, order)
     end
 
-    local foodToSpend = FB_GetFoodToSpend(player, order, availableFood)
+    local foodToSpend = FB_GetFoodToSpend(player, city, order, availableFood)
 
     local multiplier = FB_GetFoodMultiplier(city, order)
     local progressKey = FB_OrderKey("PROGRESS", playerID, city, order.signature)
@@ -581,7 +625,7 @@ local function FB_ApplyLeagueProcess(playerID, player, city, order, availableFoo
         return 0, 0, 1000
     end
 
-    local foodToSpend = FB_GetFoodToSpend(player, order, availableFood)
+    local foodToSpend = FB_GetFoodToSpend(player, city, order, availableFood)
 
     -- CP counts World Congress work as city Production plus overflow during
     -- the following global League update.  Track hundredth-hammer credit so
@@ -697,6 +741,14 @@ end
 local function FB_ProcessPlayerTurn(playerID)
     local player = Players[playerID]
     if not FB_IsFleshbornPlayer(player) then
+        -- NeverCapture normally removes these state buildings during conquest,
+        -- but peaceful city trades and some liberation paths do not use the
+        -- ordinary conquest cleanup. Scrub them from every non-Chorus owner.
+        if player ~= nil and player:IsAlive() then
+            for city in player:Cities() do
+                FB_ClearCityDummies(city)
+            end
+        end
         return
     end
 
@@ -766,9 +818,10 @@ local function FB_ProcessPlayerTurn(playerID)
         local foodSpent = 0
         local productionGain = 0
         local multiplier = 0
+        local manualCity = FB_IsManualCity(player, city)
 
         if order.kind == "UNIT" or order.kind == "BUILDING" or order.kind == "PROJECT" or order.kind == "LEAGUE" then
-            if player:IsHuman() then
+            if manualCity then
                 local frozenKey = FB_CityKey("FROZEN", playerID, city)
                 local frozen = FB_GetSavedNumber(frozenKey, -1)
                 if frozen < 0 then frozen = city:GetFood() end
@@ -793,7 +846,7 @@ local function FB_ProcessPlayerTurn(playerID)
                 )
             end
 
-            if player:IsHuman() then
+            if manualCity then
                 FB_SetPendingFood(playerID, city, math.max(0, pendingForProject - foodSpent))
             else
                 -- Gross city Food is applied by the engine.  Subtract only the
@@ -806,7 +859,7 @@ local function FB_ProcessPlayerTurn(playerID)
             FB_ClearLeagueOverflow(city)
             local frozenKey = FB_CityKey("FROZEN", playerID, city)
             local frozen = FB_GetSavedNumber(frozenKey, -1)
-            if player:IsHuman() and frozen >= 0 then
+            if manualCity and frozen >= 0 then
                 -- Remove the final normal Food tick from the project turn
                 -- before returning the city to genuine population growth.
                 FB_SetFood(city, frozen)
@@ -1104,6 +1157,7 @@ local function FB_OnSetPopulation(x, y, oldPopulation, newPopulation)
     local playerID = city:GetOwner()
     local player = Players[playerID]
     if not FB_IsFleshbornPlayer(player) then return end
+    if not FB_IsManualCity(player, city) then return end
 
     local order = FB_GetOrder(city)
     if order.kind == "GROWTH" then return end
@@ -1132,9 +1186,10 @@ local function FB_OnPlayerDoneTurn(playerID)
     for city in player:Cities() do
         FB_UpdateCityDummies(playerID, player, city)
         local order = FB_GetOrder(city)
-        if player:IsHuman() and order.kind ~= "GROWTH" then
+        local manualCity = FB_IsManualCity(player, city)
+        if manualCity and order.kind ~= "GROWTH" then
             FB_SetSavedNumber(FB_CityKey("FROZEN", playerID, city), city:GetFood())
-        elseif player:IsHuman() then
+        elseif manualCity then
             FB_SetSavedNumber(FB_CityKey("FROZEN", playerID, city), -1)
         end
         if order.kind ~= "LEAGUE" then
@@ -1153,6 +1208,18 @@ local function FB_CityCanBuyPlot(playerID, cityID, x, y)
 end
 
 local function FB_UnitCanUpgrade(playerID, unitID)
+    return not FB_IsFleshbornPlayer(Players[playerID])
+end
+
+local function FB_PlayerCanGiftGold(playerID, minorID)
+    return not FB_IsFleshbornPlayer(Players[playerID])
+end
+
+local function FB_PlayerCanGiftImprovement(playerID, minorID)
+    return not FB_IsFleshbornPlayer(Players[playerID])
+end
+
+local function FB_PlayerCanBuyOut(playerID, minorID)
     return not FB_IsFleshbornPlayer(Players[playerID])
 end
 
@@ -1180,12 +1247,42 @@ local function FB_OnUnitCaptureType(playerID, unitID, unitType, byCivilization)
     return FB_GetFleshbornUnitForClass(unitType) or unitType
 end
 
+local function FB_OnMinorGift(minorID, majorID, data2, data3, flags, option1, option2, giftType)
+    if not FB_IsFleshbornPlayer(Players[majorID]) then return end
+    -- First-contact gifts are already applied when this hook fires. Digest any
+    -- Gold/Faith immediately, and normalize a possible militaristic unit.
+    FB_DigestAvailableCurrency(majorID)
+    FB_NormalizeUnits(Players[majorID])
+end
+
+local function FB_OnMinorGiftUnit(minorID, majorID, unitType)
+    if FB_IsFleshbornPlayer(Players[majorID]) then
+        FB_NormalizeUnits(Players[majorID])
+    end
+end
+
+local function FB_OnPlayerBullied(playerID, minorID, gold, unitType, x, y, yieldType)
+    if not FB_IsFleshbornPlayer(Players[playerID]) then return end
+    -- Tribute is awarded before this hook. It therefore cannot become a
+    -- same-turn city-state or tile-improvement spending window.
+    if (tonumber(gold) or -1) > 0 then
+        FB_DigestAvailableCurrency(playerID)
+    end
+    if (tonumber(unitType) or -1) >= 0 then
+        FB_NormalizeUnits(Players[playerID])
+    end
+end
+
 local function FB_OnCityCaptureComplete(oldOwnerID, isCapital, x, y, newOwnerID)
     local player = Players[newOwnerID]
-    if not FB_IsFleshbornPlayer(player) then return end
     local plot = Map.GetPlot(x, y)
     local city = plot and plot:GetPlotCity() or nil
     if city == nil or city:GetOwner() ~= newOwnerID then return end
+
+    if not FB_IsFleshbornPlayer(player) then
+        FB_ClearCityDummies(city)
+        return
+    end
 
     FB_EnsurePlayerInvariants(player)
     FB_UpdateCityDummies(newOwnerID, player, city)
@@ -1193,6 +1290,23 @@ local function FB_OnCityCaptureComplete(oldOwnerID, isCapital, x, y, newOwnerID)
     FB_ClearLeagueOverflow(city)
     FB_SetSavedNumber(FB_CityKey("FROZEN", newOwnerID, city), -1)
     FB_SetSavedNumber(FB_CityKey("BASE_FOOD", newOwnerID, city), city:GetFood())
+end
+
+local function FB_OnPlayerLiberated(liberatorID, restoredPlayerID, cityID)
+    local player = Players[restoredPlayerID]
+    local city = player and player:GetCityByID(cityID) or nil
+    if city == nil then return end
+
+    if FB_IsFleshbornPlayer(player) then
+        FB_EnsurePlayerInvariants(player)
+        FB_UpdateCityDummies(restoredPlayerID, player, city)
+        FB_SetProduction(city, 0)
+        FB_ClearLeagueOverflow(city)
+        FB_SetSavedNumber(FB_CityKey("FROZEN", restoredPlayerID, city), -1)
+        FB_SetSavedNumber(FB_CityKey("BASE_FOOD", restoredPlayerID, city), city:GetFood())
+    else
+        FB_ClearCityDummies(city)
+    end
 end
 
 GameEvents.PlayerDoTurn.Add(FB_ProcessPlayerTurn)
@@ -1250,6 +1364,15 @@ end
 if GameEvents.UnitCanHaveUpgrade ~= nil then
     GameEvents.UnitCanHaveUpgrade.Add(FB_UnitCanUpgrade)
 end
+if GameEvents.PlayerCanGiftGold ~= nil then
+    GameEvents.PlayerCanGiftGold.Add(FB_PlayerCanGiftGold)
+end
+if GameEvents.PlayerCanGiftImprovement ~= nil then
+    GameEvents.PlayerCanGiftImprovement.Add(FB_PlayerCanGiftImprovement)
+end
+if GameEvents.PlayerCanBuyOut ~= nil then
+    GameEvents.PlayerCanBuyOut.Add(FB_PlayerCanBuyOut)
+end
 if GameEvents.CanStartMission ~= nil then
     GameEvents.CanStartMission.Add(FB_CanStartMission)
 end
@@ -1262,8 +1385,20 @@ end
 if GameEvents.UnitCaptureType ~= nil then
     GameEvents.UnitCaptureType.Add(FB_OnUnitCaptureType)
 end
+if GameEvents.MinorGift ~= nil then
+    GameEvents.MinorGift.Add(FB_OnMinorGift)
+end
+if GameEvents.MinorGiftUnit ~= nil then
+    GameEvents.MinorGiftUnit.Add(FB_OnMinorGiftUnit)
+end
+if GameEvents.PlayerBullied ~= nil then
+    GameEvents.PlayerBullied.Add(FB_OnPlayerBullied)
+end
 if GameEvents.CityCaptureComplete ~= nil then
     GameEvents.CityCaptureComplete.Add(FB_OnCityCaptureComplete)
+end
+if GameEvents.PlayerLiberated ~= nil then
+    GameEvents.PlayerLiberated.Add(FB_OnPlayerLiberated)
 end
 
 -- Make the production suppression and visible city yields correct immediately

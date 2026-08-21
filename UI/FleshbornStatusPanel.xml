@@ -33,7 +33,7 @@
       <Label Anchor="L,T" AnchorSide="I.O" Offset="12,-18" Font="TwCenMT18" FontStyle="Shadow" String="BROOD NODE LEDGER" ColorSet="Beige_Black_Alpha" />
       <Grid Anchor="C,C" Size="714,292" Style="Grid9Frame">
         <ScrollPanel ID="CityScrollPanel" Anchor="C,C" Size="680,258" Vertical="1">
-          <Label ID="CityStatusLabel" Anchor="L,T" Offset="8,8" Size="642,4096" Font="TwCenMT17" FontStyle="Shadow" WrapWidth="642" String="Waiting for the Chorus..." ColorSet="Beige_Black_Alpha" />
+          <Label ID="CityStatusLabel" Anchor="L,T" Offset="8,8" Font="TwCenMT17" FontStyle="Shadow" WrapWidth="642" String="Waiting for the Chorus..." ColorSet="Beige_Black_Alpha" />
         </ScrollPanel>
       </Grid>
     </Grid>
