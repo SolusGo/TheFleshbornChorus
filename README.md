@@ -133,6 +133,16 @@ Trade deals, foreign trade routes, city-state rewards, and Great Merchant Gold a
 
 Internal Production and internal Gold routes are unavailable; the Chorus can send Food internally. International routes remain available, with any Gold they return entering normal digestion.
 
+## Ancient Ruins
+
+Ancient Ruins cannot open a second economy or bypass the growth queue. The Community Patch reward-choice hook automatically removes these results from the Chorus's eligible reward pool and rerolls the ruin:
+
+- free Population, which would otherwise bypass Food growth or conflict with a frozen project city;
+- a free Settler/Colony Bud, which would bypass both its Food cost and parent Population sacrifice;
+- direct Production from compatible ruin mods or alternate Community Patch configurations.
+
+Gold and Faith ruins remain available and enter normal digestion. Culture, Technology, exploration, healing, experience, promotions, and information rewards work normally. The Settler-difficulty Worker reward resolves to a Harvester. Ruin unit upgrades also remain available: the Community Patch selects the Chorus unit-class override before converting the unit, so strategic-resource classes become their biological replacement immediately and then enter normal army feeding.
+
 ## Unique components
 
 ### Feeding Field

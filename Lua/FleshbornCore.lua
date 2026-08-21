@@ -47,6 +47,21 @@ for _, resourceType in ipairs({"RESOURCE_SUGAR", "RESOURCE_BANANA", "RESOURCE_CI
     end
 end
 
+-- Ruins must not bypass the one-resource economy. The CP goody-choice event
+-- asks this handler before a reward is selected; returning true removes that
+-- result from the eligible pool and lets the DLL choose another reward.
+-- Build the set from reward fields instead of hard-coded IDs so compatible
+-- goody mods and future CP rows receive the same protection.
+local FB_BLOCKED_GOODIES = {}
+for goody in GameInfo.GoodyHuts() do
+    local grantsPopulation = (tonumber(goody.Population) or 0) > 0
+    local grantsProduction = (tonumber(goody.Production) or 0) > 0
+    local grantsSettler = goody.UnitClass == "UNITCLASS_SETTLER"
+    if grantsPopulation or grantsProduction or grantsSettler then
+        FB_BLOCKED_GOODIES[goody.ID] = true
+    end
+end
+
 local FB_DIGEST_FOOD = {}
 if BUILD_DIGEST_FOREST ~= nil then FB_DIGEST_FOOD[BUILD_DIGEST_FOREST] = 20 end
 if BUILD_DIGEST_JUNGLE ~= nil then FB_DIGEST_FOOD[BUILD_DIGEST_JUNGLE] = 15 end
@@ -1155,6 +1170,11 @@ local function FB_PlayerCanCreateTradeRoute(fromPlayerID, fromCityID, toPlayerID
     return true
 end
 
+local function FB_GoodyHutCanNotReceive(playerID, unitID, goodyType, bPick)
+    return FB_IsFleshbornPlayer(Players[playerID])
+        and FB_BLOCKED_GOODIES[goodyType] == true
+end
+
 local function FB_OnUnitCaptureType(playerID, unitID, unitType, byCivilization)
     if byCivilization ~= CIV_FLESHBORN then return unitType end
     return FB_GetFleshbornUnitForClass(unitType) or unitType
@@ -1235,6 +1255,9 @@ if GameEvents.CanStartMission ~= nil then
 end
 if GameEvents.PlayerCanCreateTradeRoute ~= nil then
     GameEvents.PlayerCanCreateTradeRoute.Add(FB_PlayerCanCreateTradeRoute)
+end
+if GameEvents.GoodyHutCanNotReceive ~= nil then
+    GameEvents.GoodyHutCanNotReceive.Add(FB_GoodyHutCanNotReceive)
 end
 if GameEvents.UnitCaptureType ~= nil then
     GameEvents.UnitCaptureType.Add(FB_OnUnitCaptureType)

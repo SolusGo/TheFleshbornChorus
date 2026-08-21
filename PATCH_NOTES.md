@@ -1,5 +1,14 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — Ancient Ruins compatibility
+
+- Enabled the Community Patch goody-choice event used for civilization-specific reward filtering.
+- Prevented Ancient Ruins from granting the Chorus free Population, a free Settler/Colony Bud, or direct Production; the DLL rerolls those results into another eligible reward instead of producing an empty ruin.
+- Built the blocked-reward set from the active `GoodyHuts` fields, covering compatible ruin mods and alternate CP configurations without hard-coded reward IDs.
+- Retained Gold and Faith rewards for normal digestion and retained safe Culture, Technology, exploration, healing, experience, promotion, and information rewards.
+- Retained the Settler-difficulty Worker reward, which resolves through the civilization override into a Harvester.
+- Verified from the CP 5.4.2 DLL source that ruin upgrades select the civilization-specific unit type before conversion; biological strategic-unit replacements therefore remain valid rewards without a delayed normalization window.
+
 ## 2026-08-21 — Founding metabolism hotfix
 
 - Fixed the size-one capital deadlock shown by the metabolism panel: ordinary starting Food could be lower than city metabolism before the player had any means to create a Feeding Field.
