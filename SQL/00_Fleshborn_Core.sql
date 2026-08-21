@@ -596,26 +596,16 @@ INSERT INTO Process_Flavors VALUES
 -- Feeding Field and Harvester build actions
 -- --------------------------------------------------------------------------
 
--- A distinct art tag is required for the engine to register the new
--- improvement reliably. Clone the active Farm definitions so this remains
--- compatible with CP art changes while using only stock placeholder assets.
-INSERT INTO ArtDefine_LandmarkTypes
-(Type, LandmarkType, FriendlyName) VALUES
-('ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD', 'Improvement', 'Fleshborn Feeding Field');
-
-INSERT INTO ArtDefine_Landmarks
-(Era, State, Scale, ImprovementType, LayoutHandler, ResourceType, Model, TerrainContour, Tech)
-SELECT Era, State, Scale,
- 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD',
- LayoutHandler, ResourceType, Model, TerrainContour, Tech
-FROM ArtDefine_Landmarks
-WHERE ImprovementType = 'ART_DEF_IMPROVEMENT_FARM';
-
-INSERT INTO ArtDefine_StrategicView
-(StrategicViewType, TileType, Asset)
-SELECT 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD', TileType, Asset
-FROM ArtDefine_StrategicView
-WHERE StrategicViewType = 'ART_DEF_IMPROVEMENT_FARM';
+-- The landmark renderer can ignore a newly cloned art tag even when its rows
+-- are present in the gameplay database.  Reuse the stock Farm tag directly;
+-- this guarantees the same construction, completed, pillaged, resource, and
+-- era models as a normal Farm without requiring custom GR2/FXSXML assets.
+DELETE FROM ArtDefine_StrategicView
+WHERE StrategicViewType = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD';
+DELETE FROM ArtDefine_Landmarks
+WHERE ImprovementType = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD';
+DELETE FROM ArtDefine_LandmarkTypes
+WHERE Type = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD';
 
 CREATE TEMP TABLE Fleshborn_FeedingFieldCopy AS
 SELECT * FROM Improvements WHERE Type = 'IMPROVEMENT_FARM';
@@ -625,7 +615,7 @@ UPDATE Fleshborn_FeedingFieldCopy SET
  Description = 'TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD',
  Civilopedia = 'TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_PEDIA',
  Help = 'TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_HELP',
- ArtDefineTag = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD',
+ ArtDefineTag = 'ART_DEF_IMPROVEMENT_FARM',
  PortraitIndex = 12,
  IconAtlas = 'FLESHBORN_ICON_ATLAS',
  SpecificCivRequired = 1,

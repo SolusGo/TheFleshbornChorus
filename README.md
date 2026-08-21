@@ -163,7 +163,7 @@ Gold and Faith ruins remain available and enter normal digestion. Culture, Techn
 
 ### Feeding Field
 
-Replaces the Farm and uses a dedicated improvement-art registration cloned from the active stock Farm graphics. Construction, completed, pillaged, resource, era, and Strategic View states therefore remain visible without custom art assets.
+Replaces the Farm and points directly to the stock `ART_DEF_IMPROVEMENT_FARM` landmark tag. Construction, completed, pillaged, resource, era, and Strategic View states therefore use the exact normal Farm graphics without requiring a custom GR2 or FXSXML model. A direct stock tag is used because Civ V's landmark renderer can ignore otherwise-valid cloned improvement-art tags.
 
 - +1 Food base;
 - +1 Food with Fresh Water;
@@ -215,7 +215,7 @@ Replaces the Settler.
 
 The supplied artwork is integrated through native Civ V DDS texture atlases:
 
-- the Fleshborn maw emblem is the civilization icon and alpha/map symbol;
+- the framed Fleshborn maw is the full-color civilization icon, while a transparent white maw silhouette is used for the civilization alpha/map symbol;
 - the First Maw has a dedicated leader portrait and static diplomacy scene;
 - the illustrated world map is used by the civilization map panel;
 - the Civ V-style landscape is the 1024×768 Dawn of Man image;

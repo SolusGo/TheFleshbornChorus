@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import sqlite3
+import struct
 import tempfile
 from contextlib import closing
 from pathlib import Path
@@ -41,6 +42,15 @@ def scalar(database: sqlite3.Connection, query: str) -> int:
     return int(database.execute(query).fetchone()[0])
 
 
+def dds_dimensions(path: Path) -> tuple[int, int]:
+    with path.open("rb") as texture:
+        header = texture.read(20)
+    if len(header) != 20 or header[:4] != b"DDS ":
+        raise AssertionError(f"Invalid DDS header: {path}")
+    height, width = struct.unpack_from("<II", header, 12)
+    return width, height
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("debug_database", type=Path)
@@ -62,6 +72,50 @@ def main() -> None:
             database.commit()
 
             assert scalar(database, "SELECT COUNT(*) FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'") == 21
+            for filename, icon_size, columns, rows in database.execute(
+                """SELECT Filename, IconSize, IconsPerRow, IconsPerColumn
+                   FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'"""
+            ):
+                texture = root / "Art" / "Atlases" / filename
+                assert texture.is_file(), f"Missing atlas texture: {texture}"
+                expected = (int(icon_size) * int(columns), int(icon_size) * int(rows))
+                actual = dds_dimensions(texture)
+                assert actual == expected, f"{filename}: declared {expected}, actual {actual}"
+
+            expected_screens = {
+                "Fleshborn_DOM.dds": (1024, 768),
+                "Fleshborn_Map.dds": (360, 412),
+                "Fleshborn_Diplomacy.dds": (1600, 900),
+            }
+            for filename, expected in expected_screens.items():
+                texture = root / "Art" / "Screens" / filename
+                assert dds_dimensions(texture) == expected, f"Unexpected screen size: {filename}"
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Improvements
+                   WHERE Type = 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD'
+                   AND ArtDefineTag = 'ART_DEF_IMPROVEMENT_FARM'""",
+            ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM ArtDefine_Landmarks
+                   WHERE ImprovementType = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD'""",
+            ) == 0
+            portrait_tables = (
+                ("Units", "PortraitIndex"),
+                ("Buildings", "PortraitIndex"),
+                ("Improvements", "PortraitIndex"),
+                ("UnitPromotions", "PortraitIndex"),
+                ("Builds", "IconIndex"),
+            )
+            for table, index_column in portrait_tables:
+                invalid = scalar(
+                    database,
+                    f"""SELECT COUNT(*) FROM {table}
+                        WHERE IconAtlas = 'FLESHBORN_ICON_ATLAS'
+                        AND ({index_column} < 0 OR {index_column} >= 16)""",
+                )
+                assert invalid == 0, f"Out-of-range Fleshborn icon index in {table}"
             assert scalar(
             database,
             """SELECT COUNT(*) FROM Units WHERE Type IN (

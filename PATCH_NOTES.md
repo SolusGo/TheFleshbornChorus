@@ -1,5 +1,14 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-22 — Feeding Field renderer fallback and icon audit
+
+- Replaced the Feeding Field's cloned landmark tag with a direct reference to Civ V's stock `ART_DEF_IMPROVEMENT_FARM` tag. The cloned rows existed correctly in the database but the landmark renderer still ignored the new tag; direct reuse now takes the exact normal Farm construction, completed, pillaged, resource, era, and Strategic View graphics.
+- Removed stale custom Feeding Field landmark rows during database activation so an updated installation cannot retain the failed registration.
+- Audited all 21 Fleshborn icon-atlas declarations against their DDS files. Civilization, leader, unit, building, improvement, promotion, and alpha textures now have exactly `IconSize × IconsPerRow/IconsPerColumn` dimensions at every declared resolution.
+- Confirmed the Dawn of Man image is 1024×768, map image is 360×412, and static diplomacy image is 1600×900, matching Civ V and the inspected custom civilizations.
+- Rebuilt the civilization alpha atlas as a transparent white maw emblem. The previous version incorrectly contained a grayscale copy of the entire framed color badge, unlike Civ V's normal alpha-symbol treatment.
+- Extended `Tools/validate_database.py` to reject mismatched atlas dimensions, presentation-image dimensions, missing DDS files, or a Feeding Field that is no longer wired to stock Farm art.
+
 ## 2026-08-22 — Food-budget UI and font hotfix
 
 - Rebuilt the metabolism panel around an empire-wide current-turn Food budget: base city surplus, queued/digested Food, city metabolism, army feeding, project spending, and Food still available after projects.

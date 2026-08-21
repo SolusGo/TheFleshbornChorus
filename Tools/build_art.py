@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import shutil
 from collections import deque
 from pathlib import Path
@@ -170,10 +171,33 @@ def build_shared_atlas(source_dir: Path, output: Path) -> None:
 
 
 def build_alpha_atlas(source: Path, sizes: tuple[int, ...], output: Path) -> None:
-    icon = edge_black_transparency(Image.open(source))
-    grayscale = icon.convert("L")
-    alpha = icon.getchannel("A")
-    icon = Image.merge("RGBA", (grayscale, grayscale, grayscale, alpha))
+    source_icon = Image.open(source).convert("RGB")
+    width, height = source_icon.size
+    center_x = (width - 1) / 2
+    center_y = (height - 1) / 2
+    symbol_radius = min(width, height) * 0.42
+    source_pixels = source_icon.load()
+    alpha = Image.new("L", source_icon.size, 0)
+    alpha_pixels = alpha.load()
+
+    # Civilization alpha atlases are transparent white emblems, not grayscale
+    # copies of the complete color badge.  Remove the gold frame and dark inner
+    # disc, then retain the brighter bone, flesh, purple, and olive emblem.
+    for y in range(height):
+        for x in range(width):
+            if math.hypot(x - center_x, y - center_y) > symbol_radius:
+                continue
+            red, green, blue = source_pixels[x, y]
+            brightest = max(red, green, blue)
+            darkest = min(red, green, blue)
+            saturation = brightest - darkest
+            brightness_alpha = max(0, (brightest - 34) * 5)
+            color_alpha = max(0, (saturation - 12) * 3)
+            alpha_pixels[x, y] = min(255, max(brightness_alpha, color_alpha))
+
+    alpha = alpha.filter(ImageFilter.MaxFilter(3))
+    white = Image.new("L", source_icon.size, 255)
+    icon = Image.merge("RGBA", (white, white, white, alpha))
     for size in sizes:
         save_dds(icon.resize((size, size), Image.Resampling.LANCZOS), output / f"Fleshborn_Civ_Alpha_{size}.dds")
 
