@@ -147,7 +147,7 @@ Gold and Faith ruins remain available and enter normal digestion. Culture, Techn
 
 ### Feeding Field
 
-Replaces the Farm and uses stock Farm graphics for now.
+Replaces the Farm and uses a dedicated improvement-art registration cloned from the active stock Farm graphics. Construction, completed, pillaged, resource, era, and Strategic View states therefore remain visible without custom art assets.
 
 - +1 Food base;
 - +1 Food with Fresh Water;

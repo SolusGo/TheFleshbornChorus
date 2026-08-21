@@ -22,8 +22,8 @@
     <SupportsHotSeat>false</SupportsHotSeat>
     <SupportsMac>false</SupportsMac>
     <ReloadAudioSystem>false</ReloadAudioSystem>
-    <ReloadLandmarkSystem>false</ReloadLandmarkSystem>
-    <ReloadStrategicViewSystem>false</ReloadStrategicViewSystem>
+    <ReloadLandmarkSystem>true</ReloadLandmarkSystem>
+    <ReloadStrategicViewSystem>true</ReloadStrategicViewSystem>
     <ReloadUnitSystem>false</ReloadUnitSystem>
     <ModActions>
       <Action>

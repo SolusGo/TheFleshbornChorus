@@ -13,8 +13,8 @@
     <SupportsHotSeat>0</SupportsHotSeat>
     <SupportsMac>0</SupportsMac>
     <ReloadAudioSystem>0</ReloadAudioSystem>
-    <ReloadLandmarkSystem>0</ReloadLandmarkSystem>
-    <ReloadStrategicViewSystem>0</ReloadStrategicViewSystem>
+    <ReloadLandmarkSystem>1</ReloadLandmarkSystem>
+    <ReloadStrategicViewSystem>1</ReloadStrategicViewSystem>
     <ReloadUnitSystem>0</ReloadUnitSystem>
   </Properties>
   <Dependencies>

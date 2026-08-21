@@ -1,5 +1,13 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — Feeding Field map graphics
+
+- Fixed completed Feeding Fields appearing without a worked improvement model on the world map.
+- Added a dedicated Feeding Field art-definition tag and cloned every active Farm landmark row, preserving construction, completed, pillaged, resource-specific, and era-specific stock models.
+- Added the stock Farm Strategic View asset under the Feeding Field art tag.
+- Enabled landmark and Strategic View system reloads in both the ModBuddy project and standalone manifest so the new registration is loaded reliably.
+- Added no custom graphics or audio; Dawn of Man audio remains empty and audio reload remains disabled.
+
 ## 2026-08-21 — Ancient Ruins compatibility
 
 - Enabled the Community Patch goody-choice event used for civilization-specific reward filtering.
