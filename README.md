@@ -66,6 +66,8 @@ Every city consumes:
 - **0.5 Food per Citizen**, rounded up per city;
 - **1 additional Food per Specialist**.
 
+The **Founding Core** in the current capital contributes +4 Food. The Chorus also begins with a Harvester, allowing the First Stomach to create its first Feeding Field instead of becoming trapped by metabolism before any agricultural infrastructure exists. This safeguard belongs only to the current capital; every additional Brood Node pays the complete expansion burden.
+
 The trait removes ordinary city and population unhappiness plus military and improvement maintenance. A hidden Community Patch dummy policy zeros universal unit upkeep—including civilian and air units—and supplies the purchase gates. Lua clamps the treasury’s real base building maintenance to zero at load, construction, capture, turn processing, and end turn, with the same policy providing a -100% building fallback. The policy is excluded from policy count, score, policy cost, and ideology checks. The DLL clamps unit upkeep and base building maintenance at zero, so no nominal Gold refund or negative-maintenance income is created. Occupied cities are treated as organs, not discontented populations.
 
 This makes wide expansion expensive in the same currency used for everything else. A new Brood Node is a mouth before it is a stomach.
@@ -164,7 +166,7 @@ When a military unit dies with a Fleshborn Devourer adjacent to it, the nearest 
 
 ### Harvester
 
-Replaces the Worker. It builds Feeding Fields, Roads, and other normal non-Farm improvements.
+Replaces the Worker, and one Harvester accompanies the initial Colony Bud. It builds Feeding Fields, Roads, and other normal non-Farm improvements.
 
 Its digestion actions remove a feature and feed the nearest city:
 
@@ -209,7 +211,7 @@ The remainder stays available for AI population growth, preventing the normal AI
 ### Build and deploy with ModBuddy
 
 1. Install the Civilization V SDK and the **Community Patch** for Civilization V: Brave New World.
-2. Open `TheFleshbornChorus.civ5proj` directly in ModBuddy.
+2. Open `TheFleshbornChorus.civ5sln` in ModBuddy (or open `TheFleshbornChorus.civ5proj` directly).
 3. In the project properties, verify **Civilization V Path** and **Civilization V User Path** if the game or Documents folder is not in the default location recorded by the project.
 4. Choose **Build > Build Solution** to generate the mod, or **Build > Deploy Solution** to copy it into Civilization V's `MODS` directory.
 5. Start Civilization V, open **MODS**, and enable the Community Patch and **The Fleshborn Chorus** before beginning a new game.
@@ -245,6 +247,7 @@ No custom audio is installed, audio reload is disabled, and the civilization’s
 
 ```text
 The Fleshborn Chorus (v 1).modinfo  Mod manifest and hard CP dependency
+TheFleshbornChorus.civ5sln          ModBuddy solution
 TheFleshbornChorus.civ5proj         ModBuddy project; build or deploy this file
 SQL/00_Fleshborn_Core.sql           Civilization, units, buildings, improvement, promotions
 SQL/10_Fleshborn_Text.sql           English text and Civilopedia entries

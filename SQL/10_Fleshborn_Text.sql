@@ -6,7 +6,7 @@
 INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE', 'All Is Sustenance'),
 ('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_SHORT', 'All Is Sustenance'),
-('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP', 'Cannot use [ICON_PRODUCTION] Production, construct World Wonders, purchase orders or tiles, or upgrade units with Gold. Select Grow Population or divert net [ICON_FOOD] Food into units at 100% cost, Colony Buds at 120%, buildings at 125%, and active World Congress projects at 1:1. Cities cost 3 [ICON_FOOD] plus 0.5 per Citizen each turn; Specialists cost 1 more. Military units consume era-scaled [ICON_FOOD] and suffer The Hunger when underfed. [ICON_GOLD] Gold and [ICON_PEACE] Faith are digested into Food at 4:1 and 3:1. Ignores Happiness, maintenance, and strategic-resource requirements.'),
+('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP', 'Cannot use [ICON_PRODUCTION] Production, construct World Wonders, purchase orders or tiles, or upgrade units with Gold. Select Grow Population or divert net [ICON_FOOD] Food into units at 100% cost, Colony Buds at 120%, buildings at 125%, and active World Congress projects at 1:1. Cities cost 3 [ICON_FOOD] plus 0.5 per Citizen each turn; Specialists cost 1 more. The capital has a +4 [ICON_FOOD] Founding Core and begins with a Harvester. Military units consume era-scaled [ICON_FOOD] and suffer The Hunger when underfed. [ICON_GOLD] Gold and [ICON_PEACE] Faith are digested into Food at 4:1 and 3:1. Ignores Happiness, maintenance, and strategic-resource requirements.'),
 
 ('TXT_KEY_LEADER_FLESHBORN_FIRST_MAW', 'The First Maw'),
 ('TXT_KEY_LEADER_FLESHBORN_FIRST_MAW_PEDIA', 'Before there were cities, there was appetite. Before there was speech, a mouth learned that other mouths could answer. The First Maw is not monarch, prophet, or parent. It is the earliest organ around which the Fleshborn Chorus learned to coordinate: a hunger old enough to remember being alone.[NEWLINE][NEWLINE]Under the First Maw, no wall is merely stone and no field is merely land. Every settlement is a stomach, every road a vein, and every army a mobile demand for calories. The Chorus does not accumulate wealth. It grows.'),
@@ -61,6 +61,8 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 
 ('TXT_KEY_BUILDING_FLESHBORN_METABOLISM', 'Metabolic State'),
 ('TXT_KEY_BUILDING_FLESHBORN_METABOLISM_HELP', 'Hidden state used to suppress Production and apply the Chorus economy.'),
+('TXT_KEY_BUILDING_FLESHBORN_FOUNDING_CORE', 'Founding Core'),
+('TXT_KEY_BUILDING_FLESHBORN_FOUNDING_CORE_HELP', 'The current capital receives +4 [ICON_FOOD] Food so the first organism can establish its Feeding Fields before the full metabolic burden takes hold.'),
 ('TXT_KEY_BUILDING_FLESHBORN_BLOOM', 'Blooming Cycle'),
 ('TXT_KEY_BUILDING_FLESHBORN_BLOOM_HELP', '+10% [ICON_FOOD] Food during a Golden Age.'),
 

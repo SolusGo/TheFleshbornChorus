@@ -10,6 +10,7 @@ local UNIT_DEVOURER = GameInfoTypes.UNIT_FLESHBORN_DEVOURER
 local UNIT_BUD = GameInfoTypes.UNIT_FLESHBORN_COLONY_BUD
 local BUILDING_DIGESTIVE = GameInfoTypes.BUILDING_FLESHBORN_DIGESTIVE_CHAMBER
 local BUILDING_METABOLISM = GameInfoTypes.BUILDING_FLESHBORN_METABOLISM
+local BUILDING_FOUNDING_CORE = GameInfoTypes.BUILDING_FLESHBORN_FOUNDING_CORE
 local BUILDING_FIELD_FOOD = GameInfoTypes.BUILDING_FLESHBORN_FIELD_FOOD
 local BUILDING_EDIBLE_FOOD = GameInfoTypes.BUILDING_FLESHBORN_EDIBLE_FOOD
 local BUILDING_MEMORY = GameInfoTypes.BUILDING_FLESHBORN_MEMORY
@@ -30,6 +31,7 @@ local BUILD_DIGEST_JUNGLE = GameInfoTypes.BUILD_FLESHBORN_DIGEST_JUNGLE
 local BUILD_DIGEST_MARSH = GameInfoTypes.BUILD_FLESHBORN_DIGEST_MARSH
 local YIELD_PRODUCTION = GameInfoTypes.YIELD_PRODUCTION
 local TRADE_CONNECTION_FOOD = TradeConnectionTypes.TRADE_CONNECTION_FOOD
+local FB_FOUNDING_CORE_FOOD = 4
 
 local FB_SAVE = Modding.OpenSaveData()
 local FB_HUNGER_PROMOTIONS = {}
@@ -217,6 +219,11 @@ local function FB_UpdateCityDummies(playerID, player, city)
     -- maintenance, or city yields are evaluated.
     FB_NormalizeCityBuildings(city)
     FB_SetBuildingCount(city, BUILDING_METABOLISM, 1)
+    -- The First Stomach must be able to establish its initial Feeding Fields
+    -- before the full metabolism can otherwise deadlock a size-one capital.
+    -- Only the current capital receives this core yield; later Brood Nodes pay
+    -- the complete expansion burden described by the civilization design.
+    FB_SetBuildingCount(city, BUILDING_FOUNDING_CORE, city:IsCapital() and 1 or 0)
     FB_SetBuildingCount(city, BUILDING_BLOOM, player:IsGoldenAge() and 1 or 0)
     FB_SetBuildingCount(city, BUILDING_MEMORY, 1 + math.floor(city:GetPopulation() / 5))
 
@@ -808,6 +815,7 @@ local function FB_ProcessPlayerTurn(playerID)
             storedFood = city:GetFood(),
             grossFood = data.gross,
             injectedFood = data.pending,
+            foundingCoreFood = FB_HasBuilding(city, BUILDING_FOUNDING_CORE) and FB_FOUNDING_CORE_FOOD or 0,
             metabolicBurden = data.metabolic,
             armyBurden = data.army,
             netFood = net,

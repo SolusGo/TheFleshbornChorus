@@ -1,6 +1,7 @@
 # ModBuddy and Visual Studio local state
 .vs/
 *.civ5proj.user
+*.civ5suo
 *.suo
 
 # Local compiler intermediates, if a ModBuddy installation places them here

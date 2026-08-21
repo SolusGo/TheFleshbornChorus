@@ -51,6 +51,12 @@ local function FB_FormatCity(cityStatus)
         cityStatus.armyBurden or 0,
         netText
     ))
+    if (cityStatus.foundingCoreFood or 0) > 0 then
+        table.insert(lines, string.format(
+            "  [COLOR_POSITIVE_TEXT]Founding Core: +%d [ICON_FOOD] is included in Gross Food[ENDCOLOR]",
+            cityStatus.foundingCoreFood
+        ))
+    end
 
     if cityStatus.orderKind == "UNIT" or cityStatus.orderKind == "BUILDING" or cityStatus.orderKind == "PROJECT" then
         local efficiency = cityStatus.digestive and "  [COLOR_POSITIVE_TEXT]Digestive Chamber -10%[ENDCOLOR]" or ""
@@ -91,6 +97,7 @@ local function FB_LiveFallback(player)
             storedFood = city:GetFood(),
             grossFood = city:FoodDifference(),
             injectedFood = 0,
+            foundingCoreFood = city:IsCapital() and 4 or 0,
             metabolicBurden = 3 + math.ceil(city:GetPopulation() * 0.5),
             armyBurden = 0,
             netFood = city:FoodDifference() - 3 - math.ceil(city:GetPopulation() * 0.5),

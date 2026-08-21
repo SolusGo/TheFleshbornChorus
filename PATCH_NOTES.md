@@ -1,5 +1,13 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — Founding metabolism hotfix
+
+- Fixed the size-one capital deadlock shown by the metabolism panel: ordinary starting Food could be lower than city metabolism before the player had any means to create a Feeding Field.
+- Added a hidden **Founding Core** that contributes +4 Food to the current capital only.
+- Added one starting Harvester so the Chorus can establish its first Feeding Field immediately.
+- Added a Founding Core line to the metabolism ledger so the capital bonus is explicit rather than hidden inside Gross Food.
+- Left the full city, Citizen, Specialist, and army burdens intact for established play and all non-capital Brood Nodes.
+
 ## 2026-08-21 — ModBuddy project conversion
 
 - Added `TheFleshbornChorus.civ5proj`, which opens directly in the Civilization V SDK's ModBuddy environment.
