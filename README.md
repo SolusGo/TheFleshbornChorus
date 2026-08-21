@@ -206,6 +206,18 @@ The remainder stays available for AI population growth, preventing the normal AI
 
 ## Installation
 
+### Build and deploy with ModBuddy
+
+1. Install the Civilization V SDK and the **Community Patch** for Civilization V: Brave New World.
+2. Open `TheFleshbornChorus.civ5proj` directly in ModBuddy.
+3. In the project properties, verify **Civilization V Path** and **Civilization V User Path** if the game or Documents folder is not in the default location recorded by the project.
+4. Choose **Build > Build Solution** to generate the mod, or **Build > Deploy Solution** to copy it into Civilization V's `MODS` directory.
+5. Start Civilization V, open **MODS**, and enable the Community Patch and **The Fleshborn Chorus** before beginning a new game.
+
+ModBuddy writes the generated manifest and deployable files under the sibling `Build\The Fleshborn Chorus` directory. The checked-in `The Fleshborn Chorus (v 1).modinfo` remains a standalone source-tree manifest for manual installs; ModBuddy regenerates its own equivalent manifest when the project builds.
+
+### Manual source-tree install
+
 1. Install and enable the **Community Patch** for Civilization V: Brave New World. It is a hard manifest dependency; the Chorus will not load ahead of or without it.
 2. Copy this repository folder into:
 
@@ -233,6 +245,7 @@ No custom audio is installed, audio reload is disabled, and the civilization’s
 
 ```text
 The Fleshborn Chorus (v 1).modinfo  Mod manifest and hard CP dependency
+TheFleshbornChorus.civ5proj         ModBuddy project; build or deploy this file
 SQL/00_Fleshborn_Core.sql           Civilization, units, buildings, improvement, promotions
 SQL/10_Fleshborn_Text.sql           English text and Civilopedia entries
 Lua/FleshbornCore.lua               Food economy and Community Patch event systems

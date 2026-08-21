@@ -1,5 +1,14 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — ModBuddy project conversion
+
+- Added `TheFleshbornChorus.civ5proj`, which opens directly in the Civilization V SDK's ModBuddy environment.
+- Mirrored the existing mod identity, version, database action order, single-player support, and both in-game UI add-ins.
+- Kept the Community Patch as a hard versioned dependency rather than weakening it to an optional reference.
+- Added every source and documentation file to the project while leaving database scripts and UI entry points outside the virtual file system as required by their ModBuddy content types.
+- Kept all audio reload settings disabled and added no Dawn of Man audio asset.
+- Documented ModBuddy build/deploy and manual source-tree installation paths in the README.
+
 ## 2026-08-21 — Invariant hardening
 
 This pass closes the failure modes found during the first full static and Community Patch source audit.
