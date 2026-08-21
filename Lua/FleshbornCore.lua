@@ -881,6 +881,7 @@ local function FB_ProcessPlayerTurn(playerID)
             name = city:GetName(),
             population = city:GetPopulation(),
             storedFood = city:GetFood(),
+            growthNeeded = city:GrowthThreshold(),
             grossFood = data.gross,
             injectedFood = data.pending,
             foundingCoreFood = FB_HasBuilding(city, BUILDING_FOUNDING_CORE) and FB_FOUNDING_CORE_FOOD or 0,
@@ -905,6 +906,28 @@ local function FB_ProcessPlayerTurn(playerID)
     FB_ApplyHungerPromotions(player, hungerTier)
     FB_NotifyHungerChange(playerID, player, oldTier, hungerTier)
 
+    local totalBaseSurplus = 0
+    local totalQueuedFood = 0
+    local totalMetabolism = 0
+    local totalArmyBurden = 0
+    local totalProjectSpend = 0
+    local totalUsableFood = 0
+    local totalAvailable = 0
+    local totalStoredFood = 0
+    local strainedCities = 0
+    for _, cityStatus in ipairs(statusCities) do
+        local usable = math.max(0, cityStatus.netFood or 0)
+        totalBaseSurplus = totalBaseSurplus + (cityStatus.grossFood or 0)
+        totalQueuedFood = totalQueuedFood + (cityStatus.injectedFood or 0)
+        totalMetabolism = totalMetabolism + (cityStatus.metabolicBurden or 0)
+        totalArmyBurden = totalArmyBurden + (cityStatus.armyBurden or 0)
+        totalProjectSpend = totalProjectSpend + (cityStatus.foodSpent or 0)
+        totalUsableFood = totalUsableFood + usable
+        totalAvailable = totalAvailable + math.max(0, usable - (cityStatus.foodSpent or 0))
+        totalStoredFood = totalStoredFood + (cityStatus.storedFood or 0)
+        if (cityStatus.netFood or 0) < 0 then strainedCities = strainedCities + 1 end
+    end
+
     MapModData.FleshbornStatus[playerID] = {
         turn = Game.GetGameTurn(),
         armyDemand = armyDemand,
@@ -913,6 +936,15 @@ local function FB_ProcessPlayerTurn(playerID)
         hungerTier = hungerTier,
         currencyFood = currencyFood,
         maintenanceSuppressed = maintenanceSuppressed,
+        baseSurplus = totalBaseSurplus,
+        queuedFood = totalQueuedFood,
+        metabolicBurden = totalMetabolism,
+        armyBurden = totalArmyBurden,
+        projectSpend = totalProjectSpend,
+        usableFood = totalUsableFood,
+        availableFood = totalAvailable,
+        storedFood = totalStoredFood,
+        strainedCities = strainedCities,
         cities = statusCities
     }
 

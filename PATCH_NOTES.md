@@ -1,5 +1,14 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-22 — Food-budget UI and font hotfix
+
+- Rebuilt the metabolism panel around an empire-wide current-turn Food budget: base city surplus, queued/digested Food, city metabolism, army feeding, project spending, and Food still available after projects.
+- Added an explicit usable-Food equation, army fed-versus-required status, unmet feeding warnings, locally strained Brood Node count, empire stored growth Food, and current Gold/Faith digestion.
+- Reworked each city entry to show its selected growth mode, local budget, project allocation or population-growth store, and remaining Food in a consistent order.
+- Changed the map button from a generic fed label to the current available Food total; it still switches to the Hunger tier whenever army feeding is deficient.
+- Corrected the misleading `Gross Food` wording to `Base Surplus`; this value is Civ V's city Food difference after ordinary citizen consumption, with the Founding Core already included.
+- Fixed the **Could not load font xml file** popup. The ledger requested the nonexistent `TwCenMT17` font; it now uses Civ V's supported `TwCenMT16` asset.
+
 ## 2026-08-21 — Custom artwork and civilization colors
 
 - Added native DDS atlases for the supplied civilization emblem, First Maw leader portrait, biological unit portraits, Digestive Chamber, Feeding Field, and all ten Hunger tiers.

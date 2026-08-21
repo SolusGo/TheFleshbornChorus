@@ -235,6 +235,21 @@ Each Brood Node receives **+1 Culture**, plus another +1 Culture per five Popula
 
 Golden Ages function as **Blooming Cycles** and give every Brood Node +10% Food. This release keeps the stock Golden Age label outside the metabolism panel.
 
+### Reading the metabolism panel
+
+The top-right Food button opens the authoritative current-turn budget. When the army is fed, the button shows Food still available after this turn's selected projects; during a deficit it shows the active Hunger tier instead.
+
+The panel reads from left to right:
+
+- **Base Surplus** is the sum of Civ V's city Food differences after ordinary citizen consumption. The capital's Founding Core is already included.
+- **Queued / Digested** is Food injected from Gold, Faith, terrain digestion, Devourer kills, and similar delayed rewards.
+- **City Metabolism** is the fixed city and population burden.
+- **Army Fed / Need** shows how much military upkeep was supplied against total demand.
+- **Project Spend** is Food diverted into units, buildings, and projects this turn.
+- **Available** is usable Food left after project allocations. In population-growth cities it remains in the growth store.
+
+Because city metabolism is local, a deficient Brood Node cannot contribute negative Food that cancels another city's surplus. The panel therefore totals each city's usable Food after its local clamp, reports strained cities separately, and then subtracts project spending. Each Brood Node entry repeats the same calculation and shows either project progress or stored population growth.
+
 Luxury Happiness remains visible in the stock interface, but its normal per-turn contribution to the Golden Age meter is removed. Golden Age points from policies, wonders, and Great People still work, so Blooming Cycles remain possible without turning luxuries into a second managed economy.
 
 The Golden Age filter uses a one-turn meter reservation instead of subtracting from the aggregate meter after the fact. The next Happiness tick pays back that reservation, while unrelated meter gains remain intact and Happiness cannot silently push the meter over its threshold first.
