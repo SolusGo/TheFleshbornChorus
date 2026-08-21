@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mod id="a4fd4238-1d64-4ab9-88bc-3aebf9f79150" version="1">
+  <Properties>
+    <Name>The Fleshborn Chorus</Name>
+    <Teaser>Gold is inert. Iron is rock. The Chorus requires calories.</Teaser>
+    <Description>A Community Patch civilization led by the First Maw. Divert Food into units, buildings, and colony buds while feeding an empire-wide biological army.</Description>
+    <Authors>SolusGo</Authors>
+    <SpecialThanks>Community Patch Project</SpecialThanks>
+    <AffectsSavedGames>1</AffectsSavedGames>
+    <MinCompatibleSaveVersion>0</MinCompatibleSaveVersion>
+    <SupportsSinglePlayer>1</SupportsSinglePlayer>
+    <SupportsMultiplayer>0</SupportsMultiplayer>
+    <SupportsHotSeat>0</SupportsHotSeat>
+    <SupportsMac>0</SupportsMac>
+    <ReloadAudioSystem>0</ReloadAudioSystem>
+    <ReloadLandmarkSystem>0</ReloadLandmarkSystem>
+    <ReloadStrategicViewSystem>0</ReloadStrategicViewSystem>
+    <ReloadUnitSystem>0</ReloadUnitSystem>
+  </Properties>
+  <Dependencies />
+  <References>
+    <Mod id="d1b6328c-ff44-4b0d-aad7-c657f83610cd" minversion="1" maxversion="999" title="(1) Community Patch" />
+  </References>
+  <Blocks />
+  <Files>
+    <File import="0">SQL\00_Fleshborn_Core.sql</File>
+    <File import="0">SQL\10_Fleshborn_Text.sql</File>
+    <File import="1">Lua\FleshbornCore.lua</File>
+    <File import="1">UI\FleshbornStatusPanel.lua</File>
+    <File import="1">UI\FleshbornStatusPanel.xml</File>
+  </Files>
+  <Actions>
+    <OnModActivated>
+      <UpdateDatabase>SQL\00_Fleshborn_Core.sql</UpdateDatabase>
+      <UpdateDatabase>SQL\10_Fleshborn_Text.sql</UpdateDatabase>
+    </OnModActivated>
+  </Actions>
+  <EntryPoints>
+    <EntryPoint type="InGameUIAddin" file="Lua\FleshbornCore.lua">
+      <Name>Fleshborn Metabolism</Name>
+      <Description>Runs growth projects, currency digestion, army feeding, terrain digestion, and AI support.</Description>
+    </EntryPoint>
+    <EntryPoint type="InGameUIAddin" file="UI\FleshbornStatusPanel.xml">
+      <Name>Fleshborn Metabolism Panel</Name>
+      <Description>Displays the active Chorus player's biological economy.</Description>
+    </EntryPoint>
+  </EntryPoints>
+</Mod>
