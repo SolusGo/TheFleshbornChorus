@@ -89,6 +89,35 @@
       <SubType>Lua</SubType>
       <ImportIntoVFS>False</ImportIntoVFS>
     </Content>
+    <Content Include="Art\Fleshborn_LeaderScene.xml">
+      <SubType>XML</SubType>
+      <ImportIntoVFS>True</ImportIntoVFS>
+    </Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_256.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_128.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_80.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_64.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_45.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_32.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_Alpha_128.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_Alpha_64.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_Alpha_48.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_Alpha_32.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_Alpha_24.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Civ_Alpha_16.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Leader_256.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Leader_128.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Leader_64.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Icons_256.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Icons_128.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Icons_80.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Icons_64.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Icons_45.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Icons_32.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Screens\Fleshborn_DOM.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Screens\Fleshborn_Map.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Screens\Fleshborn_Diplomacy.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Source\Fleshborn_Chorus_Concept_Infographic.png"><ImportIntoVFS>False</ImportIntoVFS></Content>
     <Content Include="README.md">
       <ImportIntoVFS>False</ImportIntoVFS>
     </Content>
@@ -100,6 +129,10 @@
     <Folder Include="SQL\" />
     <Folder Include="Lua\" />
     <Folder Include="UI\" />
+    <Folder Include="Art\" />
+    <Folder Include="Art\Atlases\" />
+    <Folder Include="Art\Screens\" />
+    <Folder Include="Art\Source\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Firaxis\ModBuddy\Civ5Mod.targets" />
 </Project>

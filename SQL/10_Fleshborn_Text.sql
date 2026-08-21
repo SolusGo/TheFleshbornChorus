@@ -89,6 +89,10 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_PROMOTION_FLESHBORN_HUNGER_9_HELP', 'Army feeding is short by up to 90%: -27% Combat Strength, -14 healing, and new military growth is disabled.'),
 ('TXT_KEY_PROMOTION_FLESHBORN_HUNGER_10_HELP', 'Army feeding has completely failed: -30% Combat Strength, -15 healing, and new military growth is disabled.'),
 
+('TXT_KEY_UNIT_FLESHBORN_HUNTER_FORM', 'Hunter Form'),
+('TXT_KEY_UNIT_FLESHBORN_SPITTER_FORM', 'Spitter Form'),
+('TXT_KEY_UNIT_FLESHBORN_SPINECASTER', 'Spinecaster'),
+('TXT_KEY_UNIT_FLESHBORN_WARFORM', 'Warform'),
 ('TXT_KEY_UNIT_FLESHBORN_SPINE_RUNNER', 'Spine Runner'),
 ('TXT_KEY_UNIT_FLESHBORN_HUNTER_BEAST', 'Hunter Beast'),
 ('TXT_KEY_UNIT_FLESHBORN_RAVAGER', 'Ravager Form'),

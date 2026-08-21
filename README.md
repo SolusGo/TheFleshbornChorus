@@ -19,7 +19,7 @@ The Fleshborn Chorus is a deliberately extreme pure-Food civilization. Food is p
 - **Unique Improvement:** Feeding Field (Farm)
 - **Primary victories:** Domination or Science
 - **Required mod:** Community Patch
-- **Graphics:** Stock placeholder art in version 1
+- **Graphics:** Custom civilization, leader, interface, and presentation art; stock 3D unit and Farm models
 - **Dawn of Man audio:** None—intentionally silent
 
 ## All Is Sustenance
@@ -103,7 +103,7 @@ This creates the intended counterplay: pillage Feeding Fields, Plantations, Fish
 
 Horses, Iron, Coal, Oil, Aluminum, and Uranium are inedible map objects. The Chorus does not need them.
 
-At database load, the mod finds every default unit and building in the active BNW/Community Patch roster that consumes a strategic resource and creates a civ-specific biological copy without that requirement. Copies retain the active rules and stock placeholder presentation. Unit copies keep their combat statistics, AI roles, promotions, prerequisites, and upgrade path. Common unit copies receive biological names such as:
+At database load, the mod finds every default unit and building in the active BNW/Community Patch roster that consumes a strategic resource and creates a civ-specific biological copy without that requirement. Copies retain the active rules and stock 3D models. Unit copies keep their combat statistics, AI roles, promotions, prerequisites, and upgrade path. Named organisms use the custom supplied portrait atlas. Common unit copies receive biological names such as:
 
 - Hunter Beast;
 - Ripper Form;
@@ -211,6 +211,24 @@ Replaces the Settler.
 - removes 1 Population from its parent when completed;
 - founds a normal mechanically functional city presented as a Brood Node.
 
+## Custom artwork and player colors
+
+The supplied artwork is integrated through native Civ V DDS texture atlases:
+
+- the Fleshborn maw emblem is the civilization icon and alpha/map symbol;
+- the First Maw has a dedicated leader portrait and static diplomacy scene;
+- the illustrated world map is used by the civilization map panel;
+- the Civ V-style landscape is the 1024×768 Dawn of Man image;
+- Hunter Form, Spitter Form, Ripper/Devourer Form, Spinecaster, Warform, Behemoth, Skyhunter, Blightwing, Leviathan, Harvester, Colony Bud, Digestive Chamber, Feeding Field, and The Hunger use their matching portraits;
+- Colony Bud v2 is the active Colony Bud portrait; v1 remains preserved with the source artwork;
+- the concept infographic and alternate leader/Dawn of Man images remain in `Art/Source` for documentation and future presentation work.
+
+Hunter Form, Spitter Form, Spinecaster, and Warform are civilization-specific copies of Warrior, Archer, Crossbowman, and Musketman. They inherit the active Community Patch statistics, AI roles, upgrade paths, sounds, and stock 3D models; the copies exist so their Fleshborn names and portraits can appear without altering those units for every civilization.
+
+The in-game color identity is now **deep Chorus purple** as the primary/player territory color and **acidic bone-gold** as the secondary emblem and unit-flag color. These colors affect borders, city banners, unit flags, score/diplomacy identifiers, and strategic-map presentation.
+
+![Fleshborn Chorus concept infographic](Art/Source/Fleshborn_Chorus_Concept_Infographic.png)
+
 ## Culture, Golden Ages, and AI
 
 Each Brood Node receives **+1 Culture**, plus another +1 Culture per five Population, representing collective instinct and inherited memory. Normal population Science remains the main path from Food to technology.
@@ -258,14 +276,14 @@ ModBuddy writes the generated manifest and deployable files under the sibling `B
 
 The mod is designed for single-player. Multiplayer and Hot Seat are disabled in the manifest because the growth ledger and UI have not yet been network-synchronization tested.
 
-## Placeholder presentation
+## Presentation
 
-Version 1 intentionally reuses stock Civilization V assets:
+The release combines the supplied 2D artwork with stock Civilization V world assets:
 
-- Washington/America leader and civilization presentation;
-- stock unit models, flags, and icons;
-- Farm art for Feeding Fields;
-- Granary/Worker/Swordsman/Settler icons for the named uniques.
+- custom civilization, leader, unit, building, improvement, promotion, map, Dawn of Man, and diplomacy textures;
+- custom deep-purple and bone-gold player colors;
+- stock 3D unit models and animations beneath the custom biological portraits;
+- stock Farm landmark models for Feeding Fields, beneath the custom Feeding Field interface icon.
 
 No custom audio is installed, audio reload is disabled, and the civilization’s `DawnOfManAudio` value is explicitly empty. The Dawn of Man screen is silent by design.
 
@@ -280,7 +298,12 @@ SQL/10_Fleshborn_Text.sql           English text and Civilopedia entries
 Lua/FleshbornCore.lua               Food economy and Community Patch event systems
 UI/FleshbornStatusPanel.xml         In-game metabolism panel layout
 UI/FleshbornStatusPanel.lua         Panel data and interaction
+Art/Atlases                         Generated Civ V DDS icon atlases
+Art/Screens                         Dawn of Man, map, and diplomacy DDS textures
+Art/Source                          Supplied full-resolution PNG source artwork
+Art/Fleshborn_LeaderScene.xml       Static First Maw diplomacy scene
+Tools/build_art.py                  Reproducible PNG-to-DDS atlas builder
 PATCH_NOTES.md                      Release history, known limitations, and next work
 ```
 
-See [PATCH_NOTES.md](PATCH_NOTES.md) for the exact version 1 implementation scope and known placeholder-era limitations.
+See [PATCH_NOTES.md](PATCH_NOTES.md) for the exact version 1 implementation scope and remaining 3D-model/UI limitations.

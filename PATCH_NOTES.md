@@ -1,5 +1,16 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-21 — Custom artwork and civilization colors
+
+- Added native DDS atlases for the supplied civilization emblem, First Maw leader portrait, biological unit portraits, Digestive Chamber, Feeding Field, and all ten Hunger tiers.
+- Added the supplied Civ V-style Dawn of Man scene, world-map panel, and a static First Maw diplomacy backdrop. Dawn of Man audio remains explicitly empty and the audio system is still not reloaded.
+- Added a custom civilization alpha atlas for unit flags, city banners, score entries, and strategic presentation.
+- Changed the player palette to deep Chorus purple with an acidic bone-gold secondary color, affecting territory borders, banners, unit flags, and map identity.
+- Added civilization-specific Warrior, Archer, Crossbowman, and Musketman copies named Hunter Form, Spitter Form, Spinecaster, and Warform. They inherit active Community Patch gameplay data and stock 3D models while using the supplied portraits.
+- Applied matching portraits to Devourer/Ripper forms, armored Behemoths, Skyhunters, Blightwings, Leviathans, Harvester, Colony Bud, Digestive Chamber, Feeding Field, and The Hunger.
+- Selected Colony Bud v2 for the active unit portrait and the Civ V-style landscape for Dawn of Man; preserved every supplied original and alternate under `Art/Source`.
+- Added `Tools/build_art.py` so every DDS texture and atlas can be rebuilt reproducibly from the source PNGs.
+
 ## 2026-08-21 — City-state and progression compatibility audit
 
 - Blocked Gold gifts, Gold-funded city-state tile improvements, and diplomatic buyouts for the Chorus, closing city-state spending paths that existed outside the ordinary city purchase hooks.
@@ -175,7 +186,7 @@ The first playable Community Patch release establishes the complete core loop: F
 
 ## Known limitations in version 1
 
-- All graphics are placeholders. Biological unit copies deliberately reuse the base unit model and icon.
+- 3D unit and Feeding Field landmark models remain stock placeholders. Their interface portraits and civilization presentation are now custom.
 - The stock CityView still calls the order list “Production” and displays hammer-shaped cost/progress widgets. The metabolism panel is authoritative for Food costs.
 - Feeding Field adjacency is a hidden city yield. The bonus appears in total city Food but not on the individual tile tooltip.
 - The normal top bar remains visible. Gold and Faith are digested at the start of the Chorus turn rather than being graphically removed from the top bar.
@@ -189,7 +200,7 @@ The first playable Community Patch release establishes the complete core loop: F
 
 ## Planned follow-up work
 
-- Custom civilization, leader, unique-component, unit, and Feeding Field artwork.
+- Custom 3D biological unit and Feeding Field landmark models.
 - A fully reskinned CityView that labels the queue and progress as Food rather than Production.
 - Top-panel presentation that hides irrelevant economies and renames Golden Ages to Blooming Cycles.
 - Dedicated biological names and help text for every non-resource military class.
