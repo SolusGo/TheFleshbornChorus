@@ -237,18 +237,18 @@ Golden Ages function as **Blooming Cycles** and give every Brood Node +10% Food.
 
 ### Reading the metabolism panel
 
-The top-right Food button opens the authoritative current-turn budget. When the army is fed, the button shows Food still available after this turn's selected projects; during a deficit it shows the active Hunger tier instead.
+The top-right Food button opens the authoritative current-turn budget. At a glance it shows Food remaining after projects and the empire condition: **Fed**, **Balanced**, **Fully Committed**, **Strained**, or **Hungry**. During an army deficit it instead prioritizes the Hunger tier and exact Combat Strength penalty. Its tooltip summarizes remaining Food and army coverage without opening the ledger.
 
 The panel reads from left to right:
 
-- **Base Surplus** is the sum of Civ V's city Food differences after ordinary citizen consumption. The capital's Founding Core is already included.
-- **Queued / Digested** is Food injected from Gold, Faith, terrain digestion, Devourer kills, and similar delayed rewards.
-- **City Metabolism** is the fixed city and population burden.
-- **Army Fed / Need** shows how much military upkeep was supplied against total demand.
-- **Project Spend** is Food diverted into units, buildings, and projects this turn.
-- **Available** is usable Food left after project allocations. In population-growth cities it remains in the growth store.
+- **Food Entering** combines Base Surplus—the sum of Civ V city Food differences after ordinary citizen consumption—with Food injected by digestion, Devourer kills, and similar queued rewards. The capital's Founding Core is already included.
+- **Fixed Costs** combines city/citizen metabolism with the portion of military feeding actually supplied.
+- **Projects** is Food diverted into units, buildings, normal projects, and Congress contributions during the snapshot.
+- **Free Food** is the remainder after project allocation. In population-growth cities it remains in the growth store; near-complete or stalled project cities may leave some temporarily uncommitted.
 
-Because city metabolism is local, a deficient Brood Node cannot contribute negative Food that cancels another city's surplus. The panel therefore totals each city's usable Food after its local clamp, reports strained cities separately, and then subtracts project spending. Each Brood Node entry repeats the same calculation and shows either project progress or stored population growth.
+The army section reports Food supplied versus required, percentage coverage, Hunger tier, and the exact current combat penalty. The Brood Node ledger marks each city as **Fed**, **Fully Committed**, **No Free Food**, or **Deficit**; shows its local Food flow; names its current growth mode; and estimates turns to population growth or project completion at the latest allocation rate.
+
+Because city metabolism is local, a deficient Brood Node cannot contribute negative Food that cancels another city's surplus. The panel therefore totals each city's usable Food after its local clamp, reports strained cities separately, and then subtracts project spending. Static tooltips on each summary card explain exactly what is included.
 
 Luxury Happiness remains visible in the stock interface, but its normal per-turn contribution to the Golden Age meter is removed. Golden Age points from policies, wonders, and Great People still work, so Blooming Cycles remain possible without turning luxuries into a second managed economy.
 

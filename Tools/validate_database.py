@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import sqlite3
 import struct
 import tempfile
 from contextlib import closing
 from pathlib import Path
+from xml.etree import ElementTree
 
 
 def quote_identifier(value: str) -> str:
@@ -51,6 +53,37 @@ def dds_dimensions(path: Path) -> tuple[int, int]:
     return width, height
 
 
+def validate_status_panel(root: Path) -> None:
+    panel_path = root / "UI" / "FleshbornStatusPanel.xml"
+    panel_tree = ElementTree.parse(panel_path)
+    controls = [element.attrib["ID"] for element in panel_tree.iter() if "ID" in element.attrib]
+    control_ids = set(controls)
+    assert len(controls) == len(control_ids), "Duplicate control ID in metabolism panel"
+
+    supported_fonts = {
+        "TwCenMT14",
+        "TwCenMT16",
+        "TwCenMT18",
+        "TwCenMT20",
+        "TwCenMT24",
+    }
+    used_fonts = {
+        element.attrib["Font"] for element in panel_tree.iter() if "Font" in element.attrib
+    }
+    assert used_fonts <= supported_fonts, f"Unsupported panel fonts: {used_fonts - supported_fonts}"
+
+    panel = next(
+        element for element in panel_tree.iter() if element.attrib.get("ID") == "MetabolismPanel"
+    )
+    width, height = (int(value) for value in panel.attrib["Size"].split(","))
+    assert width <= 960 and height <= 700, "Panel no longer fits the 1024x768-safe envelope"
+
+    panel_lua = (root / "UI" / "FleshbornStatusPanel.lua").read_text(encoding="utf-8-sig")
+    referenced_controls = set(re.findall(r"Controls\.([A-Za-z0-9_]+)", panel_lua))
+    missing_controls = referenced_controls - control_ids
+    assert not missing_controls, f"Lua references missing panel controls: {sorted(missing_controls)}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("debug_database", type=Path)
@@ -58,6 +91,7 @@ def main() -> None:
     args = parser.parse_args()
 
     root = args.project_root.resolve()
+    validate_status_panel(root)
     with tempfile.TemporaryDirectory(prefix="fleshborn-db-") as temporary:
         validation_database = Path(temporary) / "Civ5DebugDatabase.db"
         shutil.copy2(args.debug_database, validation_database)
@@ -166,7 +200,7 @@ def main() -> None:
                                 'UNIT_FLESHBORN_SPINECASTER', 'UNIT_FLESHBORN_WARFORM')""",
             ) == 4
 
-    print("Database validation passed: SQL, atlases, colors, presentation, and unit overrides are coherent.")
+    print("Validation passed: database, art, presentation, unit overrides, and metabolism UI are coherent.")
 
 
 if __name__ == "__main__":

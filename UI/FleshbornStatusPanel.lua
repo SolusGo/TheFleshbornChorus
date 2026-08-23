@@ -6,7 +6,9 @@ local CIV_FLESHBORN = GameInfoTypes.CIVILIZATION_FLESHBORN_CHORUS
 local panelOpen = false
 
 local function FB_IsActivePlayerFleshborn()
-    local player = Players[Game.GetActivePlayer()]
+    local playerID = Game.GetActivePlayer()
+    if playerID == nil or playerID < 0 then return false end
+    local player = Players[playerID]
     return player ~= nil
         and player:IsAlive()
         and CIV_FLESHBORN ~= nil
@@ -20,6 +22,21 @@ end
 local function FB_Signed(value)
     value = tonumber(value) or 0
     return (value >= 0 and "+" or "") .. tostring(value)
+end
+
+local function FB_Percent(current, required)
+    current = math.max(0, tonumber(current) or 0)
+    required = math.max(0, tonumber(required) or 0)
+    if required <= 0 then return 100 end
+    return math.max(0, math.min(100, math.floor((current * 100) / required)))
+end
+
+local function FB_EstimateTurns(remaining, rate)
+    remaining = math.max(0, tonumber(remaining) or 0)
+    rate = math.max(0, tonumber(rate) or 0)
+    if remaining <= 0 then return "ready" end
+    if rate <= 0 then return "stalled" end
+    return "about " .. tostring(math.ceil(remaining / rate)) .. " turns"
 end
 
 local function FB_OrderName(cityStatus)
@@ -49,11 +66,26 @@ local function FB_FormatCity(cityStatus)
     local spent = cityStatus.foodSpent or 0
     local remaining = math.max(0, usable - spent)
     local netText = FB_Signed(net)
+    local nodeState = "FED"
+    local nodeColor = "[COLOR_POSITIVE_TEXT]"
+    if net < 0 then
+        nodeState = "DEFICIT"
+        nodeColor = "[COLOR_NEGATIVE_TEXT]"
+    elseif spent > 0 and remaining <= 0 then
+        nodeState = "FULLY COMMITTED"
+        nodeColor = "[COLOR_WARNING_TEXT]"
+    elseif remaining <= 0 then
+        nodeState = "NO FREE FOOD"
+        nodeColor = "[COLOR_WARNING_TEXT]"
+    end
 
-    table.insert(lines, FB_Color(cityStatus.name .. "  //  POP " .. tostring(cityStatus.population) .. "  //  " .. string.upper(mode), "[COLOR_YIELD_FOOD]"))
+    table.insert(lines,
+        FB_Color(cityStatus.name .. "  //  POP " .. tostring(cityStatus.population), "[COLOR_YIELD_FOOD]")
+        .. "  //  " .. FB_Color(nodeState, nodeColor)
+    )
     table.insert(lines, string.format(
-        "  Budget:  base %+d [ICON_FOOD]  +  queued %d  -  metabolism %d  -  army %d  =  %s usable",
-        cityStatus.grossFood or 0,
+        "  Flow: %s base  +  %d added  -  %d metabolism  -  %d army  =  %s [ICON_FOOD] usable",
+        FB_Signed(cityStatus.grossFood or 0),
         cityStatus.injectedFood or 0,
         cityStatus.metabolicBurden or 0,
         cityStatus.armyBurden or 0,
@@ -61,40 +93,53 @@ local function FB_FormatCity(cityStatus)
     ))
     if (cityStatus.foundingCoreFood or 0) > 0 then
         table.insert(lines, string.format(
-            "  [COLOR_POSITIVE_TEXT]Founding Core: +%d [ICON_FOOD] is already included in base surplus[ENDCOLOR]",
+            "  [COLOR_POSITIVE_TEXT]Founding Core +%d [ICON_FOOD] is already included in base[ENDCOLOR]",
             cityStatus.foundingCoreFood
         ))
     end
 
     if cityStatus.orderKind == "UNIT" or cityStatus.orderKind == "BUILDING" or cityStatus.orderKind == "PROJECT" then
-        local efficiency = cityStatus.digestive and "  [COLOR_POSITIVE_TEXT]Digestive Chamber -10%[ENDCOLOR]" or ""
+        local needed = math.max(0, cityStatus.projectNeeded or 0)
+        local progress = math.max(0, cityStatus.projectProgress or 0)
+        local percent = FB_Percent(progress, needed)
+        local eta = FB_EstimateTurns(needed - progress, cityStatus.productionGain or 0)
+        local efficiency = cityStatus.digestive
+            and " // [COLOR_POSITIVE_TEXT]Digestive Chamber -10% Food cost[ENDCOLOR]" or ""
         table.insert(lines, string.format(
-            "  Project: %d/%d progress  //  about %d [ICON_FOOD] total%s",
-            cityStatus.projectProgress or 0,
-            cityStatus.projectNeeded or 0,
-            cityStatus.foodCost or 0,
+            "  Mode: %s  //  %d/%d progress (%d%%)  //  %s%s",
+            string.upper(mode),
+            progress,
+            needed,
+            percent,
+            eta,
             efficiency
         ))
         table.insert(lines, string.format(
-            "  This turn: %d [ICON_FOOD] spent -> %d progress  //  %d [ICON_FOOD] remains%s",
+            "  Allocation: %d [ICON_FOOD] -> %d progress  //  %d [ICON_FOOD] free%s",
             spent,
             cityStatus.productionGain or 0,
             remaining,
-            (cityStatus.pendingFood or 0) > 0 and ("  //  " .. tostring(cityStatus.pendingFood) .. " Food waiting") or ""
+            (cityStatus.pendingFood or 0) > 0
+                and ("  //  " .. tostring(cityStatus.pendingFood) .. " Food queued") or ""
         ))
     elseif cityStatus.orderKind == "LEAGUE" then
-        table.insert(lines, "  Contributing to: " .. mode .. "  //  1 Food becomes 1 Congress contribution")
+        table.insert(lines, "  Mode: " .. string.upper(mode) .. "  //  1 Food becomes 1 Congress contribution")
         table.insert(lines, string.format(
-            "  Last allocation: %d [ICON_FOOD] -> %d contribution",
+            "  Allocation: %d [ICON_FOOD] -> %d contribution  //  %d [ICON_FOOD] free",
             cityStatus.foodSpent or 0,
-            cityStatus.productionGain or 0
+            cityStatus.productionGain or 0,
+            remaining
         ))
     else
+        local growthNeeded = math.max(0, cityStatus.growthNeeded or 0)
+        local storedFood = math.max(0, cityStatus.storedFood or 0)
+        local eta = FB_EstimateTurns(growthNeeded - storedFood, remaining)
         table.insert(lines, string.format(
-            "  Population growth: %d/%d stored  //  %d [ICON_FOOD] available this turn",
-            cityStatus.storedFood or 0,
-            cityStatus.growthNeeded or 0,
-            remaining
+            "  Mode: GROW POPULATION  //  %d/%d stored  //  %d [ICON_FOOD] this turn  //  %s",
+            storedFood,
+            growthNeeded,
+            remaining,
+            eta
         ))
     end
 
@@ -168,7 +213,6 @@ end
 
 local function FB_Refresh()
     local playerID = Game.GetActivePlayer()
-    local player = Players[playerID]
     if not FB_IsActivePlayerFleshborn() then
         Controls.MetabolismButton:SetHide(true)
         Controls.MetabolismPanel:SetHide(true)
@@ -176,6 +220,7 @@ local function FB_Refresh()
         return
     end
 
+    local player = Players[playerID]
     Controls.MetabolismButton:SetHide(false)
     local status = MapModData.FleshbornStatus and MapModData.FleshbornStatus[playerID]
     if status == nil then status = FB_LiveFallback(player) end
@@ -185,41 +230,145 @@ local function FB_Refresh()
     local armyDemand = status.armyDemand or 0
     local armyFed = status.armyFed or 0
     local unmetArmy = math.max(0, armyDemand - armyFed)
+    local armyCoverage = FB_Percent(armyFed, armyDemand)
+    local hungerPenalty = math.max(0, hungerTier * 3)
+    local incomeTotal = totals.baseSurplus + totals.queuedFood
+    local fixedCosts = totals.metabolicBurden + totals.armyBurden
+    local cityCount = #(status.cities or {})
+    local projectNodes = 0
+    for _, cityStatus in ipairs(status.cities or {}) do
+        if cityStatus.orderKind ~= "GROWTH" then projectNodes = projectNodes + 1 end
+    end
 
-    Controls.AvailableFoodLabel:SetText(FB_Color(FB_Signed(totals.availableFood) .. " [ICON_FOOD]", totals.availableFood > 0 and "[COLOR_POSITIVE_TEXT]" or "[COLOR_WARNING_TEXT]"))
-    Controls.BaseSurplusLabel:SetText(FB_Signed(totals.baseSurplus) .. " [ICON_FOOD]")
-    Controls.QueuedFoodLabel:SetText(FB_Signed(totals.queuedFood) .. " [ICON_FOOD]")
-    Controls.MetabolismCostLabel:SetText("-" .. tostring(totals.metabolicBurden) .. " [ICON_FOOD]")
-    Controls.ArmyBudgetLabel:SetText(tostring(armyFed) .. " / " .. tostring(armyDemand))
-    Controls.ProjectSpendLabel:SetText("-" .. tostring(totals.projectSpend) .. " [ICON_FOOD]")
+    local turn = status.turn or Game.GetGameTurn()
+    Controls.TurnLabel:SetText("TURN " .. tostring(turn))
+    Controls.IncomeTotalLabel:SetText(FB_Color(
+        FB_Signed(incomeTotal) .. " [ICON_FOOD]",
+        incomeTotal > 0 and "[COLOR_POSITIVE_TEXT]" or "[COLOR_WARNING_TEXT]"
+    ))
+    Controls.IncomeBreakdownLabel:SetText(
+        "Base " .. FB_Signed(totals.baseSurplus)
+        .. " // Added " .. FB_Signed(totals.queuedFood)
+    )
+    Controls.FixedCostTotalLabel:SetText(FB_Color(
+        "-" .. tostring(fixedCosts) .. " [ICON_FOOD]",
+        fixedCosts > 0 and "[COLOR_WARNING_TEXT]" or "[COLOR_POSITIVE_TEXT]"
+    ))
+    Controls.FixedBreakdownLabel:SetText(
+        "Cities -" .. tostring(totals.metabolicBurden)
+        .. " // Army -" .. tostring(totals.armyBurden)
+    )
+    Controls.ProjectSpendLabel:SetText(
+        "-" .. tostring(totals.projectSpend) .. " [ICON_FOOD]"
+    )
+    Controls.ProjectDetailLabel:SetText(
+        tostring(projectNodes) .. (projectNodes == 1 and " node allocating" or " nodes allocating")
+    )
+    Controls.AvailableFoodLabel:SetText(FB_Color(
+        FB_Signed(totals.availableFood) .. " [ICON_FOOD]",
+        totals.availableFood > 0 and "[COLOR_POSITIVE_TEXT]" or "[COLOR_WARNING_TEXT]"
+    ))
+    Controls.AvailableDetailLabel:SetText(
+        totals.availableFood > 0 and "Uncommitted this turn" or "No Food remains free"
+    )
     Controls.BudgetEquationLabel:SetText(string.format(
-        "%d [ICON_FOOD] usable after fixed costs  -  %d spent on projects  =  %s [ICON_FOOD] available",
+        "%d [ICON_FOOD] usable after local fixed costs  -  %d project allocation  =  %s [ICON_FOOD] free",
         totals.usableFood,
         totals.projectSpend,
         FB_Signed(totals.availableFood)
     ))
 
-    if hungerTier <= 0 then
-        Controls.MetabolismButtonLabel:SetText("[ICON_FOOD] " .. FB_Signed(totals.availableFood) .. " AVAILABLE")
-    else
-        Controls.MetabolismButtonLabel:SetText("[ICON_FOOD] HUNGER " .. tostring(hungerTier))
+    local empireState = "FED"
+    local empireColor = "[COLOR_POSITIVE_TEXT]"
+    local stateDetail = tostring(totals.availableFood)
+        .. " Food remains after current growth and project decisions."
+    if hungerTier > 0 then
+        empireState = "HUNGRY"
+        empireColor = "[COLOR_NEGATIVE_TEXT]"
+        stateDetail = "The army lacks " .. tostring(unmetArmy) .. " Food. Military bioforms suffer -"
+            .. tostring(hungerPenalty) .. "% Combat Strength until feeding recovers."
+    elseif totals.strainedCities > 0 then
+        empireState = "STRAINED"
+        empireColor = "[COLOR_WARNING_TEXT]"
+        stateDetail = tostring(totals.strainedCities)
+            .. (totals.strainedCities == 1 and " Brood Node has" or " Brood Nodes have")
+            .. " a negative local Food budget. Inspect the ledger below."
+    elseif totals.availableFood <= 0 and totals.projectSpend > 0 then
+        empireState = "FULLY COMMITTED"
+        empireColor = "[COLOR_WARNING_TEXT]"
+        stateDetail = "Every usable Food is committed to current projects; none remains for population growth."
+    elseif totals.availableFood <= 0 then
+        empireState = "BALANCED"
+        empireColor = "[COLOR_WARNING_TEXT]"
+        stateDetail = "The organism is meeting fixed costs, but no Food remains for additional growth."
     end
+    Controls.StateLabel:SetText(FB_Color(empireState, empireColor))
+    Controls.StateDetailLabel:SetText(stateDetail)
+
+    if hungerTier > 0 then
+        Controls.MetabolismButtonLabel:SetText(
+            "[ICON_FOOD] HUNGER " .. tostring(hungerTier) .. " // -" .. tostring(hungerPenalty) .. "%"
+        )
+    elseif totals.strainedCities > 0 then
+        Controls.MetabolismButtonLabel:SetText(
+            "[ICON_FOOD] " .. tostring(totals.strainedCities) .. " STRAINED // "
+            .. FB_Signed(totals.availableFood) .. " FREE"
+        )
+    else
+        local buttonState = empireState == "FULLY COMMITTED" and "COMMITTED" or empireState
+        Controls.MetabolismButtonLabel:SetText(
+            "[ICON_FOOD] " .. FB_Signed(totals.availableFood) .. " FREE // " .. buttonState
+        )
+    end
+    Controls.MetabolismButton:SetToolTipString(
+        empireState .. "[NEWLINE]"
+        .. tostring(totals.availableFood) .. " Food free after current commitments.[NEWLINE]"
+        .. tostring(armyFed) .. " of " .. tostring(armyDemand) .. " army Food supplied.[NEWLINE][NEWLINE]"
+        .. "Click to open the metabolism ledger."
+    )
 
     local riskParts = {}
-    if unmetArmy > 0 then
-        table.insert(riskParts, FB_Color("Army shortfall: " .. tostring(unmetArmy) .. " Food // Hunger tier " .. tostring(hungerTier), "[COLOR_NEGATIVE_TEXT]"))
+    if armyDemand <= 0 then
+        Controls.ArmyStateLabel:SetText(FB_Color("NO ARMY BURDEN", "[COLOR_POSITIVE_TEXT]"))
+    elseif unmetArmy > 0 then
+        Controls.ArmyStateLabel:SetText(FB_Color(
+            "HUNGER TIER " .. tostring(hungerTier),
+            "[COLOR_NEGATIVE_TEXT]"
+        ))
     else
-        table.insert(riskParts, FB_Color("Army fully fed", "[COLOR_POSITIVE_TEXT]"))
+        Controls.ArmyStateLabel:SetText(FB_Color("FULLY FED", "[COLOR_POSITIVE_TEXT]"))
     end
-    if totals.strainedCities > 0 then
-        table.insert(riskParts, FB_Color(tostring(totals.strainedCities) .. " Brood Node(s) have a negative local budget", "[COLOR_WARNING_TEXT]"))
+    Controls.ArmyBudgetLabel:SetText(
+        tostring(armyFed) .. " FED / " .. tostring(armyDemand)
+        .. " REQUIRED // " .. tostring(armyCoverage) .. "%"
+    )
+    if hungerPenalty > 0 then
+        Controls.HungerPenaltyLabel:SetText(FB_Color(
+            "-" .. tostring(hungerPenalty) .. "% COMBAT STRENGTH",
+            "[COLOR_NEGATIVE_TEXT]"
+        ))
     else
-        table.insert(riskParts, "no Brood Nodes are locally strained")
+        Controls.HungerPenaltyLabel:SetText(FB_Color(
+            "NO COMBAT PENALTY",
+            "[COLOR_POSITIVE_TEXT]"
+        ))
+    end
+
+    if totals.strainedCities > 0 then
+        table.insert(riskParts, FB_Color(
+            tostring(totals.strainedCities) .. " local node deficit",
+            "[COLOR_WARNING_TEXT]"
+        ))
+    else
+        table.insert(riskParts, "No local node deficits")
     end
     if (status.currencyFood or 0) > 0 then
-        table.insert(riskParts, tostring(status.currencyFood) .. " Food digested from Gold/Faith")
+        table.insert(riskParts, tostring(status.currencyFood) .. " Food digested from currency")
     end
-    Controls.RiskLabel:SetText(table.concat(riskParts, "  //  "))
+    if (status.maintenanceSuppressed or 0) > 0 then
+        table.insert(riskParts, tostring(status.maintenanceSuppressed) .. " Gold upkeep suppressed")
+    end
+    Controls.RiskLabel:SetText(table.concat(riskParts, " // "))
 
     local cityBlocks = {}
     for _, cityStatus in ipairs(status.cities or {}) do
@@ -231,8 +380,14 @@ local function FB_Refresh()
 
     Controls.CityStatusLabel:SetText(table.concat(cityBlocks, "[NEWLINE][NEWLINE]------------------------------------------------------------[NEWLINE][NEWLINE]"))
     Controls.CityScrollPanel:CalculateInternalSize()
+    Controls.CitySummaryLabel:SetText(
+        "BROOD NODES // " .. tostring(cityCount)
+        .. (cityCount == 1 and " CITY" or " CITIES")
+        .. " // " .. tostring(totals.strainedCities) .. " STRAINED"
+        .. " // " .. tostring(totals.storedFood) .. " [ICON_FOOD] STORED GROWTH"
+    )
     Controls.FooterLabel:SetText(
-        "Stored population growth: " .. tostring(totals.storedFood) .. " Food  //  4 Gold = 1 Food  //  3 Faith = 1 Food"
+        "4 Gold = 1 Food // 3 Faith = 1 Food // Snapshot shows this turn's completed allocations"
     )
 end
 

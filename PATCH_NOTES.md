@@ -1,5 +1,16 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-23 — Metabolism UI clarity pass
+
+- Reorganized the ledger into a four-stage current-turn Food flow: entering Food, fixed costs, project allocation, and Food remaining after projects.
+- Added a prominent empire condition with distinct Fed, Balanced, Fully Committed, Strained, and Hungry explanations.
+- Expanded army feeding into its own section with supplied/required Food, coverage percentage, Hunger tier, and exact Combat Strength penalty.
+- Reworked Brood Node entries to show a colored local condition, local Food equation, selected mode, progress percentage, current allocation, and estimated turns at the latest rate.
+- Added an empire city summary, turn stamp, contextual card tooltips, and a dynamic map-button tooltip.
+- Hardened observer and invalid-active-player handling so the Chorus-only controls remain hidden safely when no normal player is active.
+- Extended repository validation to catch missing Lua controls, duplicate XML IDs, unsupported fonts, and layouts larger than the 1024×768-safe panel envelope.
+- Retained only supported Civ V fonts and controls; no custom font XML or audio was added.
+
 ## 2026-08-22 — Renderer-proof Feeding Fields
 
 - Changed the Fleshborn-only construction action to place Civ V's genuine `IMPROVEMENT_FARM` on the map. The game loaded the prior direct Farm art tag correctly but its landmark renderer still refused to draw the distinct improvement type.
