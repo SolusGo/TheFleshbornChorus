@@ -1,5 +1,12 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-24 — Consumption Harvest
+
+- Razing a city now represents consuming it and generates **5 Food per razing city per turn** for the duration of the raze.
+- Routed harvested Food to the nearest non-razing Brood Node, preventing the doomed city from regrowing Population and extending its own razing timer.
+- Added Consumption Harvest readouts to both the source and receiving Brood Nodes and to the empire status summary.
+- Made the reward stateless at its source: stopping the raze halts it immediately, while save/load, transfer, recycled city IDs, and final destruction cannot duplicate a turn of Food.
+
 ## 2026-08-23 — Metabolism UI clarity pass
 
 - Reorganized the ledger into a four-stage current-turn Food flow: entering Food, fixed costs, project allocation, and Food remaining after projects.

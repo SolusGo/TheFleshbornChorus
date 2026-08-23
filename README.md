@@ -147,6 +147,12 @@ The normal diplomatic and progression systems remain playable, but they cannot r
 
 Human puppets use the automated city allocation rather than the manual all-or-nothing growth rule. They spend only a share of usable Food on their autonomous order and may grow from the remainder. Annexed cities return to the normal manual choice. Peaceful transfers, conquest, and liberation also clear or initialize hidden metabolic state for the new owner, preventing foreign cities from retaining Chorus yield modifiers.
 
+### Consuming conquered cities
+
+Razing is **Consumption** for the Fleshborn Chorus. Every city currently being razed generates **5 Food per turn** for as long as the razing lasts. The harvest is routed to the nearest non-razing Brood Node, where it enters the normal current-turn metabolism budget and can feed the army, grow population, or advance the selected project.
+
+The consumed city never receives its own harvest. This prevents Food growth from restoring its Population and extending the razing timer. Stopping the raze immediately stops the harvest; save/load, city transfer, and final city destruction do not award an extra payment. If no surviving non-razing Brood Node exists, no harvest is generated.
+
 One narrow compatibility exception is intentional: policy or tenet effects that explicitly turn Happiness into Science or Culture remain progression bonuses. Happiness still cannot constrain expansion, fund an order, purchase anything, pay upkeep, or provide its normal passive Golden Age progress.
 
 ## Ancient Ruins

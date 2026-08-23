@@ -97,6 +97,18 @@ local function FB_FormatCity(cityStatus)
             cityStatus.foundingCoreFood
         ))
     end
+    if (cityStatus.consumptionHarvestFood or 0) > 0 then
+        table.insert(lines, string.format(
+            "  [COLOR_POSITIVE_TEXT]Consumption Harvest +%d [ICON_FOOD] routed here[ENDCOLOR]",
+            cityStatus.consumptionHarvestFood
+        ))
+    end
+    if (cityStatus.consumptionSourceFood or 0) > 0 then
+        table.insert(lines, string.format(
+            "  [COLOR_WARNING_TEXT]CONSUMING CITY // +%d [ICON_FOOD] routed to the nearest surviving Brood Node[ENDCOLOR]",
+            cityStatus.consumptionSourceFood
+        ))
+    end
 
     if cityStatus.orderKind == "UNIT" or cityStatus.orderKind == "BUILDING" or cityStatus.orderKind == "PROJECT" then
         local needed = math.max(0, cityStatus.projectNeeded or 0)
@@ -156,6 +168,8 @@ local function FB_LiveFallback(player)
             growthNeeded = city:GrowthThreshold(),
             grossFood = city:FoodDifference(),
             injectedFood = 0,
+            consumptionHarvestFood = 0,
+            consumptionSourceFood = 0,
             foundingCoreFood = city:IsCapital() and 4 or 0,
             metabolicBurden = 3 + math.ceil(city:GetPopulation() * 0.5),
             armyBurden = 0,
@@ -364,6 +378,11 @@ local function FB_Refresh()
     end
     if (status.currencyFood or 0) > 0 then
         table.insert(riskParts, tostring(status.currencyFood) .. " Food digested from currency")
+    end
+    if (status.consumptionHarvestFood or 0) > 0 then
+        table.insert(riskParts,
+            tostring(status.consumptionHarvestFood) .. " Food harvested from consumed cities"
+        )
     end
     if (status.maintenanceSuppressed or 0) > 0 then
         table.insert(riskParts, tostring(status.maintenanceSuppressed) .. " Gold upkeep suppressed")

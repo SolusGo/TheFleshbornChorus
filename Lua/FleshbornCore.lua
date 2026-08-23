@@ -35,6 +35,7 @@ local TECH_CIVIL_SERVICE = GameInfoTypes.TECH_CIVIL_SERVICE
 local TECH_FERTILIZER = GameInfoTypes.TECH_FERTILIZER
 local TRADE_CONNECTION_FOOD = TradeConnectionTypes.TRADE_CONNECTION_FOOD
 local FB_FOUNDING_CORE_FOOD = 4
+local FB_CONSUMPTION_HARVEST_FOOD = 5
 
 local FB_SAVE = Modding.OpenSaveData()
 local FB_HUNGER_PROMOTIONS = {}
@@ -525,6 +526,27 @@ local function FB_FindNearestCity(player, x, y)
     return nearest
 end
 
+local function FB_IsCityRazing(city)
+    if city == nil or city.IsRazing == nil then return false end
+    local ok, razing = pcall(function() return city:IsRazing() end)
+    return ok and razing == true
+end
+
+local function FB_FindNearestNonRazingCity(player, x, y)
+    local nearest = nil
+    local bestDistance = 999999
+    for city in player:Cities() do
+        if not FB_IsCityRazing(city) then
+            local distance = Map.PlotDistance(x, y, city:GetX(), city:GetY())
+            if distance < bestDistance then
+                nearest = city
+                bestDistance = distance
+            end
+        end
+    end
+    return nearest
+end
+
 local function FB_DigestCurrency(playerID, player, cities)
     if #cities == 0 then
         return 0
@@ -814,6 +836,9 @@ local function FB_ProcessPlayerTurn(playerID)
     local cities = {}
     local cityData = {}
     local totalPreArmySupply = 0
+    local consumptionHarvestByCity = {}
+    local consumptionSourceByCity = {}
+    local totalConsumptionHarvest = 0
 
     local maintenanceSuppressed = FB_EnsurePlayerInvariants(player)
     FB_NormalizeUnits(player)
@@ -823,13 +848,31 @@ local function FB_ProcessPlayerTurn(playerID)
         FB_UpdateCityDummies(playerID, player, city)
     end
 
+    -- A city being razed is consumed over time. Route its harvest away from
+    -- the doomed city so Food growth cannot restore Population and extend the
+    -- razing timer. Because this is calculated once in PlayerDoTurn and is not
+    -- stored on the source city, save/load and stop-razing cannot duplicate it.
+    for _, city in ipairs(cities) do
+        if FB_IsCityRazing(city) then
+            local recipient = FB_FindNearestNonRazingCity(player, city:GetX(), city:GetY())
+            if recipient ~= nil then
+                local recipientID = recipient:GetID()
+                consumptionHarvestByCity[recipientID] =
+                    (consumptionHarvestByCity[recipientID] or 0) + FB_CONSUMPTION_HARVEST_FOOD
+                consumptionSourceByCity[city:GetID()] = FB_CONSUMPTION_HARVEST_FOOD
+                totalConsumptionHarvest = totalConsumptionHarvest + FB_CONSUMPTION_HARVEST_FOOD
+            end
+        end
+    end
+
     local currencyFood = FB_DigestCurrency(playerID, player, cities)
     FB_SuppressHappinessGoldenAge(playerID, player)
 
     for _, city in ipairs(cities) do
         local gross = FB_GetGrossFood(city)
         local metabolic = FB_GetMetabolicBurden(city)
-        local pending = FB_GetPendingFood(playerID, city)
+        local consumptionHarvest = consumptionHarvestByCity[city:GetID()] or 0
+        local pending = FB_GetPendingFood(playerID, city) + consumptionHarvest
         local preArmy = math.max(0, gross + pending - metabolic)
         totalPreArmySupply = totalPreArmySupply + preArmy
         table.insert(cityData, {
@@ -837,6 +880,7 @@ local function FB_ProcessPlayerTurn(playerID)
             gross = gross,
             metabolic = metabolic,
             pending = pending,
+            consumptionHarvest = consumptionHarvest,
             preArmy = preArmy,
             army = 0
         })
@@ -943,6 +987,8 @@ local function FB_ProcessPlayerTurn(playerID)
             growthNeeded = city:GrowthThreshold(),
             grossFood = data.gross,
             injectedFood = data.pending,
+            consumptionHarvestFood = data.consumptionHarvest,
+            consumptionSourceFood = consumptionSourceByCity[city:GetID()] or 0,
             foundingCoreFood = FB_HasBuilding(city, BUILDING_FOUNDING_CORE) and FB_FOUNDING_CORE_FOOD or 0,
             metabolicBurden = data.metabolic,
             armyBurden = data.army,
@@ -994,6 +1040,7 @@ local function FB_ProcessPlayerTurn(playerID)
         preArmySupply = totalPreArmySupply,
         hungerTier = hungerTier,
         currencyFood = currencyFood,
+        consumptionHarvestFood = totalConsumptionHarvest,
         maintenanceSuppressed = maintenanceSuppressed,
         baseSurplus = totalBaseSurplus,
         queuedFood = totalQueuedFood,
