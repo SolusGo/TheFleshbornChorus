@@ -199,6 +199,31 @@ def main() -> None:
                AND UnitType IN ('UNIT_FLESHBORN_HUNTER_FORM', 'UNIT_FLESHBORN_SPITTER_FORM',
                                 'UNIT_FLESHBORN_SPINECASTER', 'UNIT_FLESHBORN_WARFORM')""",
             ) == 4
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Civilization_BuildingClassOverrides
+                   WHERE CivilizationType = 'CIVILIZATION_FLESHBORN_CHORUS'
+                   AND BuildingClassType = 'BUILDINGCLASS_LIBRARY'
+                   AND BuildingType = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'""",
+            ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Buildings
+                   WHERE Type = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'
+                   AND BuildingClass = 'BUILDINGCLASS_LIBRARY'
+                   AND GoldMaintenance = 0""",
+            ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Building_YieldChangesPerPop
+                   WHERE BuildingType = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'""",
+            ) == 0
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Building_YieldChanges
+                   WHERE BuildingType = 'BUILDING_FLESHBORN_NEURAL_SCIENCE'
+                   AND YieldType = 'YIELD_SCIENCE' AND Yield = 1""",
+            ) == 1
 
     print("Validation passed: database, art, presentation, unit overrides, and metabolism UI are coherent.")
 

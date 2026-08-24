@@ -1,5 +1,14 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-24 — Neural Cluster
+
+- Added the **Neural Cluster** as the Fleshborn Library replacement using the original civilization concept.
+- Replaced the Community Patch Library's ordinary per-Population Science with +1 Science for every 3 Food actually consumed by population in the city.
+- Counted normal Citizen feeding, additional Fleshborn Citizen metabolism, and Specialist metabolism; excluded the fixed city-organ burden.
+- Added dynamic Science recalculation for population, Specialist, capture, transfer, and save/load changes, plus a per-city explanation in the metabolism ledger.
+- Normalized acquired Libraries into Neural Clusters and converted Clusters into the new civilization's correct Library-class building when a city leaves Chorus ownership, preventing inert or overwritten unique buildings.
+- Used the stock Library portrait and 3D presentation as placeholder art.
+
 ## 2026-08-24 — Consumption Harvest
 
 - Razing a city now represents consuming it and generates **5 Food per razing city per turn** for the duration of the raze.

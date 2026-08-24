@@ -9,11 +9,14 @@ local CIV_FLESHBORN = GameInfoTypes.CIVILIZATION_FLESHBORN_CHORUS
 local UNIT_DEVOURER = GameInfoTypes.UNIT_FLESHBORN_DEVOURER
 local UNIT_BUD = GameInfoTypes.UNIT_FLESHBORN_COLONY_BUD
 local BUILDING_DIGESTIVE = GameInfoTypes.BUILDING_FLESHBORN_DIGESTIVE_CHAMBER
+local BUILDING_NEURAL_CLUSTER = GameInfoTypes.BUILDING_FLESHBORN_NEURAL_CLUSTER
+local BUILDING_LIBRARY = GameInfoTypes.BUILDING_LIBRARY
 local BUILDING_METABOLISM = GameInfoTypes.BUILDING_FLESHBORN_METABOLISM
 local BUILDING_FOUNDING_CORE = GameInfoTypes.BUILDING_FLESHBORN_FOUNDING_CORE
 local BUILDING_FIELD_FOOD = GameInfoTypes.BUILDING_FLESHBORN_FIELD_FOOD
 local BUILDING_EDIBLE_FOOD = GameInfoTypes.BUILDING_FLESHBORN_EDIBLE_FOOD
 local BUILDING_MEMORY = GameInfoTypes.BUILDING_FLESHBORN_MEMORY
+local BUILDING_NEURAL_SCIENCE = GameInfoTypes.BUILDING_FLESHBORN_NEURAL_SCIENCE
 local BUILDING_PRODUCTION_SINK = GameInfoTypes.BUILDING_FLESHBORN_PRODUCTION_SINK
 local BUILDING_BLOOM = GameInfoTypes.BUILDING_FLESHBORN_BLOOM
 local POLICY_INVARIANTS = GameInfoTypes.POLICY_FLESHBORN_INVARIANTS
@@ -115,6 +118,7 @@ for _, buildingType in ipairs({
     "BUILDING_FLESHBORN_FIELD_FOOD",
     "BUILDING_FLESHBORN_EDIBLE_FOOD",
     "BUILDING_FLESHBORN_MEMORY",
+    "BUILDING_FLESHBORN_NEURAL_SCIENCE",
     "BUILDING_FLESHBORN_PRODUCTION_SINK",
     "BUILDING_FLESHBORN_BLOOM"
 }) do
@@ -189,6 +193,40 @@ local function FB_ClearCityDummies(city)
             city:SetNumFreeBuilding(buildingID, 0)
         end
     end
+
+    -- The Cluster's yield is driven by Fleshborn population metabolism. If a
+    -- city leaves the Chorus, convert it back to a normal Library rather than
+    -- leaving the new owner with an inert civilization-specific building.
+    if BUILDING_NEURAL_CLUSTER ~= nil and BUILDING_LIBRARY ~= nil then
+        local neuralReal = city:GetNumRealBuilding(BUILDING_NEURAL_CLUSTER) or 0
+        local neuralFree = city:GetNumFreeBuilding(BUILDING_NEURAL_CLUSTER) or 0
+        if neuralReal > 0 or neuralFree > 0 then
+            local targetLibrary = BUILDING_LIBRARY
+            local owner = Players[city:GetOwner()]
+            local civilization = owner and GameInfo.Civilizations[owner:GetCivilizationType()] or nil
+            if civilization ~= nil then
+                for override in GameInfo.Civilization_BuildingClassOverrides{
+                    CivilizationType = civilization.Type,
+                    BuildingClassType = "BUILDINGCLASS_LIBRARY"
+                } do
+                    local overrideID = GameInfoTypes[override.BuildingType]
+                    if overrideID ~= nil then targetLibrary = overrideID end
+                end
+            end
+
+            local hasLibrary = (city:GetNumRealBuilding(targetLibrary) or 0) > 0
+                or (city:GetNumFreeBuilding(targetLibrary) or 0) > 0
+            city:SetNumRealBuilding(BUILDING_NEURAL_CLUSTER, 0)
+            city:SetNumFreeBuilding(BUILDING_NEURAL_CLUSTER, 0)
+            if not hasLibrary then
+                if neuralFree > 0 then
+                    city:SetNumFreeBuilding(targetLibrary, 1)
+                else
+                    city:SetNumRealBuilding(targetLibrary, 1)
+                end
+            end
+        end
+    end
 end
 
 local function FB_IsManualCity(player, city)
@@ -251,6 +289,21 @@ local function FB_CountSpecialists(city)
         count = count + (city:GetSpecialistCount(specialist.ID) or 0)
     end
     return count
+end
+
+local function FB_GetNeuralScience(city)
+    if not FB_HasBuilding(city, BUILDING_NEURAL_CLUSTER) then
+        return 0, 0
+    end
+
+    local population = math.max(0, city:GetPopulation() or 0)
+    local specialists = FB_CountSpecialists(city)
+    -- Ordinary Citizens consume 2 Food in the Civ V growth engine. Fleshborn
+    -- population metabolism adds 0.5 per Citizen, rounded up per city, while
+    -- every Specialist consumes one additional Food. The fixed 3-Food city
+    -- burden is infrastructure and deliberately does not feed the Cluster.
+    local populationFood = (population * 2) + math.ceil(population * 0.5) + specialists
+    return math.floor(populationFood / 3), populationFood
 end
 
 local function FB_NormalizeCityBuildings(city)
@@ -342,6 +395,8 @@ local function FB_UpdateCityDummies(playerID, player, city)
 
     FB_SetBuildingCount(city, BUILDING_FIELD_FOOD, fieldRuleFood + adjacencyFood)
     FB_SetBuildingCount(city, BUILDING_EDIBLE_FOOD, edibleFood)
+    local neuralScience = FB_GetNeuralScience(city)
+    FB_SetBuildingCount(city, BUILDING_NEURAL_SCIENCE, neuralScience)
 end
 
 local function FB_MigrateLegacyFeedingFields()
@@ -978,6 +1033,7 @@ local function FB_ProcessPlayerTurn(playerID)
                 foodCost = math.ceil((city:GetProductionNeeded() * multiplier) / 1000)
             end
         end
+        local neuralScience, neuralFoodConsumed = FB_GetNeuralScience(city)
 
         table.insert(statusCities, {
             id = city:GetID(),
@@ -1001,7 +1057,10 @@ local function FB_ProcessPlayerTurn(playerID)
             foodCost = foodCost,
             projectProgress = city:GetProduction(),
             projectNeeded = city:GetProductionNeeded(),
-            digestive = FB_HasBuilding(city, BUILDING_DIGESTIVE)
+            digestive = FB_HasBuilding(city, BUILDING_DIGESTIVE),
+            neuralCluster = FB_HasBuilding(city, BUILDING_NEURAL_CLUSTER),
+            neuralScience = neuralScience,
+            neuralFoodConsumed = neuralFoodConsumed
         })
         FB_SetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), city:GetFood())
     end

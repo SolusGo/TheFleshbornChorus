@@ -109,6 +109,13 @@ local function FB_FormatCity(cityStatus)
             cityStatus.consumptionSourceFood
         ))
     end
+    if cityStatus.neuralCluster then
+        table.insert(lines, string.format(
+            "  [COLOR_CYAN]Neural Cluster: %d [ICON_FOOD] population feeding -> +%d [ICON_RESEARCH] Science[ENDCOLOR]",
+            cityStatus.neuralFoodConsumed or 0,
+            cityStatus.neuralScience or 0
+        ))
+    end
 
     if cityStatus.orderKind == "UNIT" or cityStatus.orderKind == "BUILDING" or cityStatus.orderKind == "PROJECT" then
         local needed = math.max(0, cityStatus.projectNeeded or 0)
@@ -182,7 +189,10 @@ local function FB_LiveFallback(player)
             foodCost = 0,
             projectProgress = city:GetProduction(),
             projectNeeded = city:GetProductionNeeded(),
-            digestive = false
+            digestive = false,
+            neuralCluster = false,
+            neuralScience = 0,
+            neuralFoodConsumed = 0
         })
     end
     return {

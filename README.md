@@ -16,6 +16,7 @@ The Fleshborn Chorus is a deliberately extreme pure-Food civilization. Food is p
 - **Unique Unit:** Devourer Form (Swordsman)
 - **Unique Unit:** Harvester (Worker)
 - **Unique Building:** Digestive Chamber (Granary)
+- **Unique Building:** Neural Cluster (Library)
 - **Unique Improvement:** Feeding Field (Farm)
 - **Primary victories:** Domination or Science
 - **Required mod:** Community Patch
@@ -39,6 +40,8 @@ Instead, choose what the city should grow:
 The production list is the Growth Queue. Select the explicit **Grow Population** process when a city should grow Citizens. Select a unit or building when its surplus should be diverted into a project. The normal CityView still uses hammer-shaped widgets in this placeholder release; the **Chorus metabolism button** near the top-right of the main screen shows the actual Food allocation and estimated Food cost.
 
 The **Digestive Chamber** reduces every unit, building, and normal project’s Food cost by 10% in its city. Congress contributions remain a direct 1:1 conversion.
+
+The **Neural Cluster** replaces the Library. Instead of the Community Patch Library's ordinary population-scaling yield, it generates **+1 Science for every 3 Food consumed by population** in its city. This counts ordinary Citizen consumption, the Chorus's additional Citizen metabolism, and additional Specialist metabolism, but not the fixed 3-Food city-organ burden.
 
 Population growth is stopped at the population-change callback while any project is selected, and the pre-turn Food store is restored immediately. Unit, building, and project completion also requires a short-lived authorization written by the Food ledger. This closes normal hammers, feature chops, Great Engineer hurry, purchases, and other direct-Production completion paths rather than repairing their effects a turn later.
 
@@ -190,6 +193,20 @@ Replaces the Granary.
 - keeps an additional 15% Food after population growth;
 - reduces Food spent per point of unit, building, or project progress by 10%.
 
+### Neural Cluster
+
+Replaces the Library and uses its stock portrait as placeholder art.
+
+- has no maintenance;
+- removes the Community Patch Library's ordinary +0.5 Science per Citizen;
+- generates +1 Science for every complete 3 Food consumed by population in the city;
+- counts normal 2-Food Citizen consumption, additional Fleshborn Citizen metabolism, and Specialist metabolism;
+- does not count the fixed 3-Food Brood Node burden.
+
+The bonus is recalculated dynamically. For example, a 3-Population city without Specialists consumes 8 Food for its population and receives +2 Science from its Neural Cluster.
+
+Libraries acquired by the Chorus are normalized into Neural Clusters. If a city containing a Neural Cluster passes to a non-Chorus owner through conquest, liberation, or peaceful transfer, it becomes that civilization's normal Library-class building because the new owner does not possess Fleshborn population metabolism.
+
 ### Devourer Form
 
 Replaces the Swordsman with the same base combat profile and no Iron requirement.
@@ -237,7 +254,7 @@ The in-game color identity is now **deep Chorus purple** as the primary/player t
 
 ## Culture, Golden Ages, and AI
 
-Each Brood Node receives **+1 Culture**, plus another +1 Culture per five Population, representing collective instinct and inherited memory. Normal population Science remains the main path from Food to technology.
+Each Brood Node receives **+1 Culture**, plus another +1 Culture per five Population, representing collective instinct and inherited memory. Normal population Science remains the foundation of technology, while a Neural Cluster converts the Food consumed by that population into additional Science.
 
 Golden Ages function as **Blooming Cycles** and give every Brood Node +10% Food. This release keeps the stock Golden Age label outside the metabolism panel.
 

@@ -50,6 +50,11 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER_STRATEGY', 'The essential stomach-and-womb of a Brood Node. It improves both population recovery and project efficiency.'),
 ('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER_PEDIA', 'The Digestive Chamber is not clearly a warehouse, stomach, or womb. It receives biomass, remembers its useful shapes, and releases either a larger city or a completed organism.'),
 
+('TXT_KEY_BUILDING_FLESHBORN_NEURAL_CLUSTER', 'Neural Cluster'),
+('TXT_KEY_BUILDING_FLESHBORN_NEURAL_CLUSTER_HELP', 'Library replacement. No maintenance. Generates +1 [ICON_RESEARCH] Science for every 3 [ICON_FOOD] Food consumed by this city''s population, including additional Specialist metabolism. The fixed city-organ burden does not count.'),
+('TXT_KEY_BUILDING_FLESHBORN_NEURAL_CLUSTER_STRATEGY', 'Feed large Brood Nodes to turn living mass into thought. Population and Specialists increase both the Cluster''s Science and the city''s metabolic demand.'),
+('TXT_KEY_BUILDING_FLESHBORN_NEURAL_CLUSTER_PEDIA', 'A Neural Cluster is an inward-folding web of ganglia through which appetite becomes memory and memory becomes prediction. It does not study books. It learns from every calorie spent sustaining the minds joined to it.'),
+
 ('TXT_KEY_BUILDING_FLESHBORN_BIO_FACTORY', 'Industrial Stomach'),
 ('TXT_KEY_BUILDING_FLESHBORN_BIO_FACTORY_HELP', 'Factory replacement. Retains the active Community Patch effects, requires no Coal, and has no Gold maintenance.'),
 ('TXT_KEY_BUILDING_FLESHBORN_BIO_HYDRO_PLANT', 'Current Organ'),
