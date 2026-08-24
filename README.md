@@ -260,18 +260,20 @@ Golden Ages function as **Blooming Cycles** and give every Brood Node +10% Food.
 
 ### Reading the metabolism panel
 
-The top-right Food button opens the authoritative current-turn budget. At a glance it shows Food remaining after projects and the empire condition: **Fed**, **Balanced**, **Fully Committed**, **Strained**, or **Hungry**. During an army deficit it instead prioritizes the Hunger tier and exact Combat Strength penalty. Its tooltip summarizes remaining Food and army coverage without opening the ledger.
+The top-right Food button opens the authoritative current-turn dashboard on the **Overview** tab. The button and tooltip give a compact net Food and empire-condition warning even while the panel is closed.
 
-The panel reads from left to right:
+The Overview begins with four large, separate readouts:
 
-- **Food Entering** combines Base Surplus—the sum of Civ V city Food differences after ordinary citizen consumption—with Food injected by digestion, Devourer kills, and similar queued rewards. The capital's Founding Core is already included.
-- **Fixed Costs** combines city/citizen metabolism with the portion of military feeding actually supplied.
-- **Projects** is Food diverted into units, buildings, normal projects, and Congress contributions during the snapshot.
-- **Free Food** is the remainder after project allocation. In population-growth cities it remains in the growth store; near-complete or stalled project cities may leave some temporarily uncommitted.
+- **Food Produced** is the empire's gross tile/city Food plus Food injected by digestion, Devourer kills, Consumption Harvest, and other queued rewards.
+- **Food Consumed** includes ordinary Citizen feeding, Fleshborn metabolism, army feeding actually supplied, and Food committed to current projects.
+- **Surplus / Deficit** is produced Food minus consumed Food for the completed turn snapshot.
+- **Empire Condition** explains whether the organism is **Fed**, **Balanced**, **Fully Committed**, **Strained**, or **Hungry**.
 
-The army section reports Food supplied versus required, percentage coverage, Hunger tier, and the exact current combat penalty. The Brood Node ledger marks each city as **Fed**, **Fully Committed**, **No Free Food**, or **Deficit**; shows its local Food flow; names its current growth mode; and estimates turns to population growth or project completion at the latest allocation rate.
+Below that, a dedicated army card reports Food supplied versus required, percentage coverage, Hunger tier, and the exact current combat penalty. Biological injections separately show Food harvested from cities being consumed, currency digested into Food, and Gold maintenance suppressed. The Brood Network summary reports city count, local strain, stored population-growth Food, and uncommitted Food.
 
-Because city metabolism is local, a deficient Brood Node cannot contribute negative Food that cancels another city's surplus. The panel therefore totals each city's usable Food after its local clamp, reports strained cities separately, and then subtracts project spending. Static tooltips on each summary card explain exactly what is included.
+The **Brood Nodes** tab has a city dropdown rather than a continuous text ledger. For the selected Node it separates Population, gross Food produced, total Food consumed, and local surplus or deficit. Its current growth order has a proper portrait, a visual progress bar, completion percentage, progress values, allocation, remaining Food, and estimated turns. Dedicated cards explain Citizen, metabolism, army, and project costs as well as the Digestive Chamber, Neural Cluster, Founding Core, razing harvests, and queued Food.
+
+Because city metabolism is local, a deficient Brood Node cannot consume another Node's positive Food balance. The dashboard therefore reports both the empire total and locally strained cities; use the Brood Nodes dropdown to identify and repair a local deficit.
 
 Luxury Happiness remains visible in the stock interface, but its normal per-turn contribution to the Golden Age meter is removed. Golden Age points from policies, wonders, and Great People still work, so Blooming Cycles remain possible without turning luxuries into a second managed economy.
 

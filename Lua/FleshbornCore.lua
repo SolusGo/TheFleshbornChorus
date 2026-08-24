@@ -1034,11 +1034,16 @@ local function FB_ProcessPlayerTurn(playerID)
             end
         end
         local neuralScience, neuralFoodConsumed = FB_GetNeuralScience(city)
+        local population = math.max(0, city:GetPopulation() or 0)
+        local citizenConsumption = population * 2
+        local baseFoodProduced = math.max(0, data.gross + citizenConsumption)
+        local foodProduced = baseFoodProduced + data.pending
+        local foodConsumed = citizenConsumption + data.metabolic + data.army + foodSpent
 
         table.insert(statusCities, {
             id = city:GetID(),
             name = city:GetName(),
-            population = city:GetPopulation(),
+            population = population,
             storedFood = city:GetFood(),
             growthNeeded = city:GrowthThreshold(),
             grossFood = data.gross,
@@ -1060,7 +1065,12 @@ local function FB_ProcessPlayerTurn(playerID)
             digestive = FB_HasBuilding(city, BUILDING_DIGESTIVE),
             neuralCluster = FB_HasBuilding(city, BUILDING_NEURAL_CLUSTER),
             neuralScience = neuralScience,
-            neuralFoodConsumed = neuralFoodConsumed
+            neuralFoodConsumed = neuralFoodConsumed,
+            baseFoodProduced = baseFoodProduced,
+            foodProduced = foodProduced,
+            citizenConsumption = citizenConsumption,
+            foodConsumed = foodConsumed,
+            foodBalance = foodProduced - foodConsumed
         })
         FB_SetSavedNumber(FB_CityKey("BASE_FOOD", playerID, city), city:GetFood())
     end
@@ -1078,6 +1088,8 @@ local function FB_ProcessPlayerTurn(playerID)
     local totalUsableFood = 0
     local totalAvailable = 0
     local totalStoredFood = 0
+    local totalFoodProduced = 0
+    local totalFoodConsumed = 0
     local strainedCities = 0
     for _, cityStatus in ipairs(statusCities) do
         local usable = math.max(0, cityStatus.netFood or 0)
@@ -1089,6 +1101,8 @@ local function FB_ProcessPlayerTurn(playerID)
         totalUsableFood = totalUsableFood + usable
         totalAvailable = totalAvailable + math.max(0, usable - (cityStatus.foodSpent or 0))
         totalStoredFood = totalStoredFood + (cityStatus.storedFood or 0)
+        totalFoodProduced = totalFoodProduced + (cityStatus.foodProduced or 0)
+        totalFoodConsumed = totalFoodConsumed + (cityStatus.foodConsumed or 0)
         if (cityStatus.netFood or 0) < 0 then strainedCities = strainedCities + 1 end
     end
 
@@ -1109,6 +1123,9 @@ local function FB_ProcessPlayerTurn(playerID)
         usableFood = totalUsableFood,
         availableFood = totalAvailable,
         storedFood = totalStoredFood,
+        foodProduced = totalFoodProduced,
+        foodConsumed = totalFoodConsumed,
+        foodBalance = totalFoodProduced - totalFoodConsumed,
         strainedCities = strainedCities,
         cities = statusCities
     }

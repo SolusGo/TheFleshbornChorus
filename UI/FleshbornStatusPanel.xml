@@ -1,68 +1,156 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Context ID="FleshbornStatusPanel">
-  <GridButton ID="MetabolismButton" Anchor="R,T" Offset="24,96" Size="248,44" ToolTip="Open the Fleshborn metabolism ledger" Style="BaseButton" Hidden="1">
-    <Label ID="MetabolismButtonLabel" Anchor="C,C" Size="230,26" Font="TwCenMT18" FontStyle="Shadow" String="[ICON_FOOD] +0 FREE // FED" ColorSet="Beige_Black_Alpha" />
+  <GridButton ID="MetabolismButton" Anchor="R,T" Offset="24,96" Size="270,44" ToolTip="Open the Fleshborn metabolism dashboard" Style="BaseButton" Hidden="1">
+    <Label ID="MetabolismButtonLabel" Anchor="C,C" Size="252,26" Font="TwCenMT18" FontStyle="Shadow" String="[ICON_FOOD] +0 NET   •   FED" Color="236,216,170,255" />
   </GridButton>
 
   <Grid ID="MetabolismPanel" Anchor="C,C" Size="960,700" Style="Grid9DetailFive140" Hidden="1" ConsumeMouse="1">
     <Box Style="MenuLeftSideTreatment" />
     <Box Style="MenuRightSideTreatment" />
+    <Box Anchor="C,C" Offset="0,12" Size="906,626" Color="19,12,23,190" />
+    <Box Anchor="C,T" Offset="0,10" Size="906,52" Color="45,22,49,235" />
+    <Box Anchor="C,T" Offset="0,62" Size="906,2" Color="205,166,80,210" />
 
-    <Label Anchor="C,T" Offset="0,13" Font="TwCenMT24" FontStyle="Shadow" String="THE FLESHBORN CHORUS" ColorSet="Beige_Black_Alpha" />
-    <Label Anchor="C,T" Offset="0,42" Font="TwCenMT16" FontStyle="Shadow" String="EMPIRE METABOLISM // ALL IS SUSTENANCE" ColorSet="Beige_Black_Alpha" />
-    <Label ID="TurnLabel" Anchor="R,T" Offset="42,42" Size="150,20" Font="TwCenMT14" FontStyle="Shadow" String="TURN 0" ColorSet="Beige_Black_Alpha" />
-    <Grid Anchor="C,T" Offset="0,68" Size="890,1" Style="Grid9Bar" />
+    <Label Anchor="C,T" Offset="0,13" Size="700,29" Font="TwCenMT24" FontStyle="Shadow" String="THE FLESHBORN CHORUS" Color="238,211,142,255" />
+    <Label Anchor="C,T" Offset="0,40" Size="700,20" Font="TwCenMT14" FontStyle="Shadow" String="EMPIRE METABOLISM   •   ALL IS SUSTENANCE" Color="190,159,198,255" />
+    <Label ID="TurnLabel" Anchor="R,T" Offset="42,35" Size="130,20" Font="TwCenMT14" FontStyle="Shadow" String="TURN 0" Color="225,205,169,255" />
 
-    <Grid Anchor="C,T" Offset="0,78" Size="890,64" Style="GridBlackIndent8" ToolTip="The empire condition prioritizes army hunger first, then Brood Nodes with a negative local Food budget.">
-      <Label ID="StateLabel" Anchor="L,T" Offset="18,8" Size="220,28" Font="TwCenMT24" FontStyle="Shadow" String="FED" ColorSet="Beige_Black_Alpha" />
-      <Label ID="StateDetailLabel" Anchor="L,T" Offset="205,11" Size="665,42" WrapWidth="650" LeadingOffset="-2" Font="TwCenMT16" FontStyle="Shadow" String="Food remains after every current commitment." ColorSet="Beige_Black_Alpha" />
-    </Grid>
+    <GridButton ID="OverviewTabButton" Anchor="C,T" Offset="-132,70" Size="252,34" Style="BaseButton" String="[ICON_FOOD] OVERVIEW" ToolTip="Empire Food and army status" />
+    <GridButton ID="BroodTabButton" Anchor="C,T" Offset="132,70" Size="252,34" Style="BaseButton" String="[ICON_CITIZEN] BROOD NODES" ToolTip="Inspect one Brood Node" />
+    <Box ID="OverviewTabAccent" Anchor="C,T" Offset="-132,103" Size="238,3" Color="210,172,86,255" />
+    <Box ID="BroodTabAccent" Anchor="C,T" Offset="132,103" Size="238,3" Color="210,172,86,255" Hidden="1" />
 
-    <Label Anchor="L,T" Offset="38,151" Font="TwCenMT16" FontStyle="Shadow" String="CURRENT FOOD FLOW" ColorSet="Beige_Black_Alpha" />
-    <Label Anchor="R,T" Offset="38,153" Size="520,20" Font="TwCenMT14" FontStyle="Shadow" String="Food is local to each Brood Node; deficits are not freely pooled." ColorSet="Beige_Black_Alpha" />
+    <Grid ID="OverviewPage" Anchor="C,T" Offset="0,113" Size="890,520">
+      <Label Anchor="L,T" Offset="0,0" Size="300,20" Font="TwCenMT16" FontStyle="Shadow" String="THIS TURN'S FOOD" Color="213,177,95,255" />
 
-    <Grid Anchor="C,T" Offset="-330,174" Size="210,86" Style="GridBlackIndent8" ToolTip="Base Surplus is Civ V Food after normal citizen consumption. Added Food includes digestion, devouring, and other queued injections.">
-      <Label Anchor="C,T" Offset="0,6" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="1 // FOOD ENTERING" ColorSet="Beige_Black_Alpha" />
-      <Label ID="IncomeTotalLabel" Anchor="C,T" Offset="0,27" Size="192,27" Font="TwCenMT20" FontStyle="Shadow" String="+0 [ICON_FOOD]" ColorSet="Beige_Black_Alpha" />
-      <Label ID="IncomeBreakdownLabel" Anchor="C,T" Offset="0,57" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="Base +0 // Added +0" ColorSet="Beige_Black_Alpha" />
-    </Grid>
-    <Grid Anchor="C,T" Offset="-110,174" Size="210,86" Style="GridBlackIndent8" ToolTip="Fixed costs are paid before population growth or projects: city/citizen metabolism and the military feeding burden.">
-      <Label Anchor="C,T" Offset="0,6" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="2 // FIXED COSTS" ColorSet="Beige_Black_Alpha" />
-      <Label ID="FixedCostTotalLabel" Anchor="C,T" Offset="0,27" Size="192,27" Font="TwCenMT20" FontStyle="Shadow" String="-0 [ICON_FOOD]" ColorSet="Beige_Black_Alpha" />
-      <Label ID="FixedBreakdownLabel" Anchor="C,T" Offset="0,57" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="Cities -0 // Army -0" ColorSet="Beige_Black_Alpha" />
-    </Grid>
-    <Grid Anchor="C,T" Offset="110,174" Size="210,86" Style="GridBlackIndent8" ToolTip="Usable Food is diverted into the selected unit, building, or Congress project. A city growing population spends none here.">
-      <Label Anchor="C,T" Offset="0,6" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="3 // PROJECTS" ColorSet="Beige_Black_Alpha" />
-      <Label ID="ProjectSpendLabel" Anchor="C,T" Offset="0,27" Size="192,27" Font="TwCenMT20" FontStyle="Shadow" String="-0 [ICON_FOOD]" ColorSet="Beige_Black_Alpha" />
-      <Label ID="ProjectDetailLabel" Anchor="C,T" Offset="0,57" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="0 converted this turn" ColorSet="Beige_Black_Alpha" />
-    </Grid>
-    <Grid Anchor="C,T" Offset="330,174" Size="210,86" Style="GridBlackIndent8" ToolTip="Free Food remains after local fixed costs and this turn's project allocation. In Grow Population mode it remains in the city's growth store.">
-      <Label Anchor="C,T" Offset="0,6" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="4 // FREE FOOD" ColorSet="Beige_Black_Alpha" />
-      <Label ID="AvailableFoodLabel" Anchor="C,T" Offset="0,27" Size="192,27" Font="TwCenMT20" FontStyle="Shadow" String="+0 [ICON_FOOD]" ColorSet="Beige_Black_Alpha" />
-      <Label ID="AvailableDetailLabel" Anchor="C,T" Offset="0,57" Size="192,18" Font="TwCenMT14" FontStyle="Shadow" String="Uncommitted this turn" ColorSet="Beige_Black_Alpha" />
-    </Grid>
+      <Grid Anchor="C,T" Offset="-300,24" Size="280,94" Style="GridBlackIndent8" ToolTip="Gross Food produced by cities plus injected Food such as digestion and Consumption Harvest.">
+        <Box Anchor="L,C" Offset="8,0" Size="4,76" Color="101,178,74,230" />
+        <Label Anchor="L,T" Offset="20,10" Size="242,18" Font="TwCenMT14" FontStyle="Shadow" String="FOOD PRODUCED" Color="190,214,157,255" />
+        <Label ID="OverviewProducedValue" Anchor="L,T" Offset="20,31" Size="242,30" Font="TwCenMT24" FontStyle="Shadow" String="+0 [ICON_FOOD]" Color="151,220,92,255" />
+        <Label ID="OverviewProducedDetail" Anchor="L,T" Offset="20,65" Size="242,20" Font="TwCenMT14" FontStyle="Shadow" String="Cities 0   •   Added 0" Color="220,209,184,255" />
+      </Grid>
 
-    <Label ID="BudgetEquationLabel" Anchor="C,T" Offset="0,268" Size="890,24" Font="TwCenMT18" FontStyle="Shadow" String="0 usable after fixed costs  -  0 project allocation  =  +0 Food free" ColorSet="Beige_Black_Alpha" />
+      <Grid Anchor="C,T" Offset="0,24" Size="280,94" Style="GridBlackIndent8" ToolTip="Food consumed by Citizens, metabolism, supplied army feeding, and current projects.">
+        <Box Anchor="L,C" Offset="8,0" Size="4,76" Color="180,91,73,230" />
+        <Label Anchor="L,T" Offset="20,10" Size="242,18" Font="TwCenMT14" FontStyle="Shadow" String="FOOD CONSUMED" Color="230,179,155,255" />
+        <Label ID="OverviewConsumedValue" Anchor="L,T" Offset="20,31" Size="242,30" Font="TwCenMT24" FontStyle="Shadow" String="-0 [ICON_FOOD]" Color="235,142,106,255" />
+        <Label ID="OverviewConsumedDetail" Anchor="L,T" Offset="20,64" Size="242,34" WrapWidth="242" LeadingOffset="-3" Font="TwCenMT14" FontStyle="Shadow" String="Citizens 0   •   Metabolism 0[NEWLINE]Army 0   •   Projects 0" Color="220,209,184,255" />
+      </Grid>
 
-    <Grid Anchor="C,T" Offset="0,302" Size="890,82" Style="GridBlackIndent8" ToolTip="Unmet army demand applies The Hunger to military bioforms. Each tier is a further -3% Combat Strength, to a maximum of -30%.">
-      <Label Anchor="L,T" Offset="14,7" Font="TwCenMT16" FontStyle="Shadow" String="ARMY FEEDING" ColorSet="Beige_Black_Alpha" />
-      <Label ID="ArmyStateLabel" Anchor="L,T" Offset="14,29" Size="250,26" Font="TwCenMT20" FontStyle="Shadow" String="FED" ColorSet="Beige_Black_Alpha" />
-      <Label ID="ArmyBudgetLabel" Anchor="C,T" Offset="0,11" Size="300,23" Font="TwCenMT18" FontStyle="Shadow" String="0 FED / 0 REQUIRED // 100%" ColorSet="Beige_Black_Alpha" />
-      <Label ID="HungerPenaltyLabel" Anchor="R,T" Offset="14,11" Size="270,23" Font="TwCenMT18" FontStyle="Shadow" String="NO COMBAT PENALTY" ColorSet="Beige_Black_Alpha" />
-      <Label ID="RiskLabel" Anchor="L,T" Offset="276,42" Size="595,30" WrapWidth="580" LeadingOffset="-2" Font="TwCenMT14" FontStyle="Shadow" String="No Brood Nodes are strained." ColorSet="Beige_Black_Alpha" />
-    </Grid>
+      <Grid Anchor="C,T" Offset="300,24" Size="280,94" Style="GridBlackIndent8" ToolTip="Gross Food produced minus all Food consumed this turn. Local city deficits remain local even when this empire total is positive.">
+        <Box ID="OverviewNetAccent" Anchor="L,C" Offset="8,0" Size="4,76" Color="115,83,150,230" />
+        <Label Anchor="L,T" Offset="20,10" Size="242,18" Font="TwCenMT14" FontStyle="Shadow" String="SURPLUS / DEFICIT" Color="207,184,218,255" />
+        <Label ID="OverviewNetValue" Anchor="L,T" Offset="20,31" Size="242,30" Font="TwCenMT24" FontStyle="Shadow" String="+0 [ICON_FOOD]" Color="207,184,218,255" />
+        <Label ID="OverviewNetDetail" Anchor="L,T" Offset="20,65" Size="242,20" Font="TwCenMT14" FontStyle="Shadow" String="No Food remains free" Color="220,209,184,255" />
+      </Grid>
 
-    <Label ID="CitySummaryLabel" Anchor="L,T" Offset="38,398" Size="884,24" Font="TwCenMT16" FontStyle="Shadow" String="BROOD NODES // 0 CITIES // 0 STORED GROWTH" ColorSet="Beige_Black_Alpha" />
-    <Grid Anchor="C,T" Offset="0,426" Size="890,204" Style="GridBlackIndent8">
-      <Grid Anchor="C,C" Size="894,208" Style="Grid9Frame">
-        <ScrollPanel ID="CityScrollPanel" Anchor="C,C" Size="858,176" Vertical="1">
-          <Label ID="CityStatusLabel" Anchor="L,T" Offset="8,7" Font="TwCenMT16" FontStyle="Shadow" WrapWidth="820" LeadingOffset="-2" String="Waiting for the Chorus..." ColorSet="Beige_Black_Alpha" />
-        </ScrollPanel>
+      <Grid Anchor="C,T" Offset="0,128" Size="880,72" Style="GridBlackIndent8" ToolTip="Hungry takes priority, then local city strain, committed projects, exact balance, and finally a fed surplus.">
+        <Box ID="OverviewStateAccent" Anchor="L,C" Offset="8,0" Size="5,54" Color="111,174,79,235" />
+        <Label Anchor="L,T" Offset="24,9" Size="170,18" Font="TwCenMT14" FontStyle="Shadow" String="EMPIRE CONDITION" Color="205,177,111,255" />
+        <Label ID="OverviewStateValue" Anchor="L,T" Offset="24,29" Size="210,31" Font="TwCenMT24" FontStyle="Shadow" String="FED" Color="151,220,92,255" />
+        <Label ID="OverviewStateDetail" Anchor="L,T" Offset="238,13" Size="620,48" WrapWidth="610" LeadingOffset="-2" Font="TwCenMT16" FontStyle="Shadow" String="The organism has Food available after every current commitment." Color="233,220,193,255" />
+      </Grid>
+
+      <Label Anchor="L,T" Offset="0,210" Size="220,20" Font="TwCenMT16" FontStyle="Shadow" String="ARMY &amp; EMPIRE SUPPORT" Color="213,177,95,255" />
+      <Grid Anchor="C,T" Offset="0,232" Size="880,1" Style="Grid9Bar" />
+
+      <Grid Anchor="L,T" Offset="5,244" Size="548,142" Style="GridBlackIndent8" ToolTip="Every military organism adds era-scaled Food demand. The empire supplies the army before population growth and projects.">
+        <Label Anchor="L,T" Offset="17,10" Size="200,20" Font="TwCenMT16" FontStyle="Shadow" String="ARMY FEEDING" Color="213,177,95,255" />
+        <Label ID="ArmyStateLabel" Anchor="R,T" Offset="17,10" Size="245,24" Font="TwCenMT18" FontStyle="Shadow" String="FULLY FED" Color="151,220,92,255" />
+        <Label ID="ArmyBudgetLabel" Anchor="L,T" Offset="17,38" Size="514,26" Font="TwCenMT20" FontStyle="Shadow" String="0 FED / 0 REQUIRED   •   100%" Color="236,219,181,255" />
+        <Box Anchor="L,T" Offset="18,72" Size="512,18" Color="27,25,29,235" />
+        <Box ID="ArmyCoverageFill" Anchor="L,T" Offset="20,74" Size="508,14" Color="112,183,79,235" />
+        <Label ID="ArmyCoverageLabel" Anchor="C,T" Offset="0,70" Size="512,22" Font="TwCenMT14" FontStyle="Shadow" String="100% SUPPLIED" Color="245,236,210,255" />
+        <Label ID="HungerPenaltyLabel" Anchor="L,T" Offset="17,101" Size="514,22" Font="TwCenMT18" FontStyle="Shadow" String="NO COMBAT PENALTY" Color="151,220,92,255" />
+        <Label ID="ArmyDemandDetail" Anchor="L,T" Offset="17,122" Size="514,18" Font="TwCenMT14" FontStyle="Shadow" String="Army feeding is paid before growth and projects." Color="190,179,159,255" />
+      </Grid>
+
+      <Grid Anchor="R,T" Offset="5,244" Size="320,142" Style="GridBlackIndent8">
+        <Label Anchor="L,T" Offset="15,10" Size="290,20" Font="TwCenMT16" FontStyle="Shadow" String="BIOLOGICAL INJECTIONS" Color="213,177,95,255" />
+        <Label ID="HarvestValueLabel" Anchor="L,T" Offset="15,38" Size="290,22" Font="TwCenMT18" FontStyle="Shadow" String="[ICON_FOOD] 0 from consumed cities" Color="201,217,148,255" />
+        <Label ID="CurrencyValueLabel" Anchor="L,T" Offset="15,65" Size="290,22" Font="TwCenMT18" FontStyle="Shadow" String="[ICON_GOLD] 0 digested from currency" Color="225,195,115,255" />
+        <Label ID="MaintenanceValueLabel" Anchor="L,T" Offset="15,92" Size="290,22" Font="TwCenMT18" FontStyle="Shadow" String="0 Gold upkeep suppressed" Color="198,177,210,255" />
+        <Label ID="InjectionNoteLabel" Anchor="L,T" Offset="15,117" Size="290,18" Font="TwCenMT14" FontStyle="Shadow" String="Added Food can feed the army immediately." Color="190,179,159,255" />
+      </Grid>
+
+      <Grid Anchor="L,T" Offset="5,398" Size="430,104" Style="GridBlackIndent8">
+        <Label Anchor="L,T" Offset="15,9" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="BROOD NETWORK" Color="213,177,95,255" />
+        <Label ID="NetworkNodesLabel" Anchor="L,T" Offset="15,35" Size="400,22" Font="TwCenMT18" FontStyle="Shadow" String="0 Brood Nodes   •   0 strained" Color="233,220,193,255" />
+        <Label ID="NetworkStoredLabel" Anchor="L,T" Offset="15,61" Size="400,22" Font="TwCenMT18" FontStyle="Shadow" String="0 [ICON_FOOD] stored toward population" Color="201,217,148,255" />
+        <Label ID="NetworkFreeLabel" Anchor="L,T" Offset="15,84" Size="400,18" Font="TwCenMT14" FontStyle="Shadow" String="0 Food usable after local fixed costs" Color="190,179,159,255" />
+      </Grid>
+
+      <Grid Anchor="R,T" Offset="5,398" Size="430,104" Style="GridBlackIndent8">
+        <Label Anchor="L,T" Offset="15,9" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="METABOLIC RULES" Color="213,177,95,255" />
+        <Label Anchor="L,T" Offset="15,35" Size="400,22" Font="TwCenMT18" FontStyle="Shadow" String="4 [ICON_GOLD] = 1 [ICON_FOOD]   •   3 [ICON_PEACE] = 1 [ICON_FOOD]" Color="233,220,193,255" />
+        <Label Anchor="L,T" Offset="15,61" Size="400,36" WrapWidth="400" LeadingOffset="-2" Font="TwCenMT14" FontStyle="Shadow" String="Food is local to each city. A deficient Brood Node cannot consume another Node's positive balance." Color="190,179,159,255" />
       </Grid>
     </Grid>
 
-    <Label ID="FooterLabel" Anchor="L,B" Offset="38,25" Size="610,22" Font="TwCenMT14" FontStyle="Shadow" String="4 Gold = 1 Food // 3 Faith = 1 Food // Numbers are this-turn allocations" ColorSet="Beige_Black_Alpha" />
-    <GridButton ID="RefreshButton" Anchor="R,B" Offset="184,16" Size="118,32" String="[ICON_RESEARCH] Update" ToolTip="Refresh the displayed snapshot" Style="BaseButton" />
-    <GridButton ID="CloseButton" Anchor="R,B" Offset="48,16" Size="118,32" String="Close" Style="BaseButton" />
+    <Grid ID="BroodPage" Anchor="C,T" Offset="0,113" Size="890,520" Hidden="1">
+      <Label Anchor="L,T" Offset="0,6" Size="180,22" Font="TwCenMT16" FontStyle="Shadow" String="SELECT BROOD NODE" Color="213,177,95,255" />
+      <PullDown ID="BroodCityPullDown" Anchor="L,T" Offset="178,0" Size="390,32" Style="GenericPullDown" ScrollThreshold="240" AutoSizePopUp="0" SpaceForScroll="1" />
+      <Label ID="BroodLocalStateLabel" Anchor="R,T" Offset="0,5" Size="290,24" Font="TwCenMT18" FontStyle="Shadow" String="FED   •   0 FREE" Color="151,220,92,255" />
+
+      <Grid Anchor="C,T" Offset="-330,43" Size="210,78" Style="GridBlackIndent8">
+        <Label Anchor="C,T" Offset="0,8" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="POPULATION" Color="205,177,111,255" />
+        <Label ID="BroodPopulationValue" Anchor="C,T" Offset="0,29" Size="190,29" Font="TwCenMT24" FontStyle="Shadow" String="0 [ICON_CITIZEN]" Color="236,219,181,255" />
+        <Label ID="BroodPopulationDetail" Anchor="C,T" Offset="0,57" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="0 stored Food" Color="190,179,159,255" />
+      </Grid>
+      <Grid Anchor="C,T" Offset="-110,43" Size="210,78" Style="GridBlackIndent8">
+        <Label Anchor="C,T" Offset="0,8" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="FOOD PRODUCED" Color="190,214,157,255" />
+        <Label ID="BroodProducedValue" Anchor="C,T" Offset="0,29" Size="190,29" Font="TwCenMT24" FontStyle="Shadow" String="+0 [ICON_FOOD]" Color="151,220,92,255" />
+        <Label ID="BroodProducedDetail" Anchor="C,T" Offset="0,57" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="Base 0   •   Added 0" Color="190,179,159,255" />
+      </Grid>
+      <Grid Anchor="C,T" Offset="110,43" Size="210,78" Style="GridBlackIndent8">
+        <Label Anchor="C,T" Offset="0,8" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="FOOD CONSUMED" Color="230,179,155,255" />
+        <Label ID="BroodConsumedValue" Anchor="C,T" Offset="0,29" Size="190,29" Font="TwCenMT24" FontStyle="Shadow" String="-0 [ICON_FOOD]" Color="235,142,106,255" />
+        <Label ID="BroodConsumedDetail" Anchor="C,T" Offset="0,57" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="Fixed 0   •   Project 0" Color="190,179,159,255" />
+      </Grid>
+      <Grid Anchor="C,T" Offset="330,43" Size="210,78" Style="GridBlackIndent8">
+        <Label Anchor="C,T" Offset="0,8" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="SURPLUS / DEFICIT" Color="207,184,218,255" />
+        <Label ID="BroodNetValue" Anchor="C,T" Offset="0,29" Size="190,29" Font="TwCenMT24" FontStyle="Shadow" String="+0 [ICON_FOOD]" Color="207,184,218,255" />
+        <Label ID="BroodNetDetail" Anchor="C,T" Offset="0,57" Size="190,18" Font="TwCenMT14" FontStyle="Shadow" String="0 Food free" Color="190,179,159,255" />
+      </Grid>
+
+      <Grid Anchor="C,T" Offset="0,134" Size="880,230" Style="GridBlackIndent8">
+        <Label Anchor="L,T" Offset="17,10" Size="250,20" Font="TwCenMT16" FontStyle="Shadow" String="CURRENT GROWTH ORDER" Color="213,177,95,255" />
+        <Grid Anchor="L,T" Offset="17,40" Size="144,144" Style="Grid9Frame">
+          <Image ID="BroodOrderPortrait" Anchor="C,C" Size="128,128" />
+        </Grid>
+        <Label ID="BroodOrderKindLabel" Anchor="L,T" Offset="181,39" Size="670,20" Font="TwCenMT14" FontStyle="Shadow" String="GROWING POPULATION" Color="190,159,198,255" />
+        <Label ID="BroodOrderNameLabel" Anchor="L,T" Offset="181,60" Size="670,31" Font="TwCenMT24" FontStyle="Shadow" String="Grow Population" Color="238,211,142,255" />
+        <Label ID="BroodOrderEtaLabel" Anchor="L,T" Offset="181,92" Size="670,22" Font="TwCenMT18" FontStyle="Shadow" String="Stalled" Color="233,220,193,255" />
+
+        <Grid ID="BroodProgressSection" Anchor="L,T" Offset="181,123" Size="670,54">
+          <Box Anchor="L,T" Offset="0,0" Size="670,24" Color="25,20,28,240" />
+          <Box ID="BroodProgressFill" Anchor="L,T" Offset="3,3" Size="1,18" Color="137,77,154,245" />
+          <Label ID="BroodProgressPercentLabel" Anchor="C,T" Offset="0,1" Size="664,21" Font="TwCenMT16" FontStyle="Shadow" String="0%" Color="247,235,209,255" />
+          <Label ID="BroodProgressNumbersLabel" Anchor="L,T" Offset="0,31" Size="670,20" Font="TwCenMT16" FontStyle="Shadow" String="0 / 0 progress" Color="220,209,184,255" />
+        </Grid>
+        <Label ID="BroodAllocationLabel" Anchor="L,T" Offset="181,181" Size="670,20" Font="TwCenMT16" FontStyle="Shadow" String="0 Food allocated this turn   •   0 Food remains free" Color="201,217,148,255" />
+        <Label ID="BroodOrderNoteLabel" Anchor="L,T" Offset="181,204" Size="670,18" Font="TwCenMT14" FontStyle="Shadow" String="Select Grow Population to keep usable Food in the growth store." Color="190,179,159,255" />
+        <Label ID="BroodOrderIconFallback" Anchor="L,T" Offset="29,103" Size="120,20" Font="TwCenMT14" FontStyle="Shadow" String="BIOLOGICAL ORDER" Color="190,159,198,255" />
+      </Grid>
+
+      <Grid Anchor="L,T" Offset="5,377" Size="430,126" Style="GridBlackIndent8">
+        <Label Anchor="L,T" Offset="15,9" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="CONSUMPTION BREAKDOWN" Color="213,177,95,255" />
+        <Label ID="BroodCitizenCostLabel" Anchor="L,T" Offset="15,37" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="Citizens: 0 Food" Color="233,220,193,255" />
+        <Label ID="BroodMetabolismCostLabel" Anchor="L,T" Offset="15,61" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="Metabolism: 0 Food" Color="233,220,193,255" />
+        <Label ID="BroodArmyCostLabel" Anchor="L,T" Offset="15,85" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="Army allocation: 0 Food" Color="233,220,193,255" />
+        <Label ID="BroodProjectCostLabel" Anchor="L,T" Offset="15,107" Size="400,18" Font="TwCenMT14" FontStyle="Shadow" String="Growth order: 0 Food" Color="190,179,159,255" />
+      </Grid>
+
+      <Grid Anchor="R,T" Offset="5,377" Size="430,126" Style="GridBlackIndent8">
+        <Label Anchor="L,T" Offset="15,9" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="BIOLOGICAL STRUCTURES &amp; EVENTS" Color="213,177,95,255" />
+        <Label ID="BroodDigestiveLabel" Anchor="L,T" Offset="15,36" Size="400,20" Font="TwCenMT16" FontStyle="Shadow" String="Digestive Chamber: absent" Color="233,220,193,255" />
+        <Label ID="BroodNeuralLabel" Anchor="L,T" Offset="15,60" Size="400,34" WrapWidth="400" LeadingOffset="-2" Font="TwCenMT16" FontStyle="Shadow" String="Neural Cluster: absent" Color="233,220,193,255" />
+        <Label ID="BroodEventLabel" Anchor="L,T" Offset="15,97" Size="400,26" WrapWidth="400" LeadingOffset="-2" Font="TwCenMT14" FontStyle="Shadow" String="No special Food injections this turn." Color="190,179,159,255" />
+      </Grid>
+    </Grid>
+
+    <Label ID="FooterLabel" Anchor="L,B" Offset="38,18" Size="610,20" Font="TwCenMT14" FontStyle="Shadow" String="Snapshot shows completed allocations for this turn" Color="184,164,135,255" />
+    <GridButton ID="RefreshButton" Anchor="R,B" Offset="184,12" Size="118,32" String="[ICON_RESEARCH] Refresh" ToolTip="Refresh the displayed snapshot" Style="BaseButton" />
+    <GridButton ID="CloseButton" Anchor="R,B" Offset="48,12" Size="118,32" String="Close" Style="BaseButton" />
   </Grid>
 </Context>

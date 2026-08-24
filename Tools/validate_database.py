@@ -83,6 +83,28 @@ def validate_status_panel(root: Path) -> None:
     missing_controls = referenced_controls - control_ids
     assert not missing_controls, f"Lua references missing panel controls: {sorted(missing_controls)}"
 
+    required_dashboard_controls = {
+        "OverviewPage",
+        "BroodPage",
+        "OverviewTabButton",
+        "BroodTabButton",
+        "BroodCityPullDown",
+        "OverviewProducedValue",
+        "OverviewConsumedValue",
+        "OverviewNetValue",
+        "OverviewStateValue",
+        "ArmyCoverageFill",
+        "BroodOrderPortrait",
+        "BroodProgressFill",
+        "BroodProgressPercentLabel",
+    }
+    missing_dashboard_controls = required_dashboard_controls - control_ids
+    assert not missing_dashboard_controls, (
+        f"Metabolism dashboard is incomplete: {sorted(missing_dashboard_controls)}"
+    )
+    assert "FB_SetTab(\"OVERVIEW\")" in panel_lua, "Dashboard no longer opens on Overview"
+    assert "SetSizeX" in panel_lua, "Dashboard progress bars are no longer dynamic"
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()

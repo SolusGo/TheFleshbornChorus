@@ -1,5 +1,16 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-24 — Tabbed metabolism dashboard
+
+- Replaced the terminal-like continuous text ledger with a readable card-based dashboard that always opens on the **Overview** tab.
+- Added distinct empire readouts for gross Food produced, total Food consumed, surplus or deficit, and the current Fed, Balanced, Fully Committed, Strained, or Hungry condition.
+- Separated army feeding into a visual supply card with a coverage bar, exact Food demand, Hunger tier, and combat penalty.
+- Added dedicated readouts for Food harvested from consumed cities, currency digestion, suppressed maintenance, stored growth Food, free Food, city count, and locally strained Brood Nodes.
+- Added a **Brood Nodes** tab with a city dropdown and separate Population, Food produced, Food consumed, and surplus/deficit cards.
+- Added current-order portraits, progress bars, percentages, exact progress, allocation, estimated turns, and contextual explanations for population growth, units, buildings, projects, and Congress contributions.
+- Added selected-city breakdowns for Citizen feeding, metabolism, army allocation, project cost, Digestive Chamber, Neural Cluster, Founding Core, Consumption Harvest, and queued Food.
+- Extended validation to require the two pages, city selector, headline budget cards, dynamic progress controls, and Overview-first behavior.
+
 ## 2026-08-24 — Neural Cluster
 
 - Added the **Neural Cluster** as the Fleshborn Library replacement using the original civilization concept.
