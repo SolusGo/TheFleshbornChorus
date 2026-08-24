@@ -60,7 +60,13 @@ INSERT OR REPLACE INTO IconTextureAtlases
 ('FLESHBORN_ICON_ATLAS', 80,  'Fleshborn_Icons_80.dds',  4, 4),
 ('FLESHBORN_ICON_ATLAS', 64,  'Fleshborn_Icons_64.dds',  4, 4),
 ('FLESHBORN_ICON_ATLAS', 45,  'Fleshborn_Icons_45.dds',  4, 4),
-('FLESHBORN_ICON_ATLAS', 32,  'Fleshborn_Icons_32.dds',  4, 4);
+('FLESHBORN_ICON_ATLAS', 32,  'Fleshborn_Icons_32.dds',  4, 4),
+('FLESHBORN_BUILDING_ATLAS', 256, 'Fleshborn_Buildings_256.dds', 8, 1),
+('FLESHBORN_BUILDING_ATLAS', 128, 'Fleshborn_Buildings_128.dds', 8, 1),
+('FLESHBORN_BUILDING_ATLAS', 80,  'Fleshborn_Buildings_80.dds',  8, 1),
+('FLESHBORN_BUILDING_ATLAS', 64,  'Fleshborn_Buildings_64.dds',  8, 1),
+('FLESHBORN_BUILDING_ATLAS', 45,  'Fleshborn_Buildings_45.dds',  8, 1),
+('FLESHBORN_BUILDING_ATLAS', 32,  'Fleshborn_Buildings_32.dds',  8, 1);
 
 INSERT INTO Traits
 (Type, Description, ShortDescription, CityUnhappinessModifier, PopulationUnhappinessModifier,
@@ -477,6 +483,23 @@ UPDATE Fleshborn_ResourceBuildingCopies SET
 
 INSERT INTO Buildings SELECT * FROM Fleshborn_ResourceBuildingCopies;
 
+-- Bespoke portraits for the four biological strategic-building replacements.
+UPDATE Buildings SET
+ IconAtlas = 'FLESHBORN_BUILDING_ATLAS',
+ PortraitIndex = CASE Type
+  WHEN 'BUILDING_FLESHBORN_BIO_FACTORY' THEN 1
+  WHEN 'BUILDING_FLESHBORN_BIO_HYDRO_PLANT' THEN 2
+  WHEN 'BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT' THEN 3
+  WHEN 'BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY' THEN 4
+  ELSE PortraitIndex
+ END
+WHERE Type IN (
+ 'BUILDING_FLESHBORN_BIO_FACTORY',
+ 'BUILDING_FLESHBORN_BIO_HYDRO_PLANT',
+ 'BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT',
+ 'BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY'
+);
+
 INSERT INTO Civilization_BuildingClassOverrides
 SELECT 'CIVILIZATION_FLESHBORN_CHORUS', BuildingClassType, NewBuildingType
 FROM Fleshborn_ResourceBuildingRoster;
@@ -553,6 +576,9 @@ UPDATE Fleshborn_NeuralCopy SET
  HurryCostModifier = -1;
 INSERT INTO Buildings SELECT * FROM Fleshborn_NeuralCopy;
 DROP TABLE Fleshborn_NeuralCopy;
+
+UPDATE Buildings SET PortraitIndex = 0, IconAtlas = 'FLESHBORN_BUILDING_ATLAS'
+WHERE Type = 'BUILDING_FLESHBORN_NEURAL_CLUSTER';
 
 INSERT INTO Building_Flavors
 SELECT 'BUILDING_FLESHBORN_NEURAL_CLUSTER', FlavorType, Flavor + 5

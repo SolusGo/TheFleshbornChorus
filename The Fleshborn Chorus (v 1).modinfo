@@ -51,6 +51,12 @@
     <File import="1">Art\Atlases\Fleshborn_Icons_64.dds</File>
     <File import="1">Art\Atlases\Fleshborn_Icons_45.dds</File>
     <File import="1">Art\Atlases\Fleshborn_Icons_32.dds</File>
+    <File import="1">Art\Atlases\Fleshborn_Buildings_256.dds</File>
+    <File import="1">Art\Atlases\Fleshborn_Buildings_128.dds</File>
+    <File import="1">Art\Atlases\Fleshborn_Buildings_80.dds</File>
+    <File import="1">Art\Atlases\Fleshborn_Buildings_64.dds</File>
+    <File import="1">Art\Atlases\Fleshborn_Buildings_45.dds</File>
+    <File import="1">Art\Atlases\Fleshborn_Buildings_32.dds</File>
     <File import="1">Art\Screens\Fleshborn_DOM.dds</File>
     <File import="1">Art\Screens\Fleshborn_Map.dds</File>
     <File import="1">Art\Screens\Fleshborn_Diplomacy.dds</File>

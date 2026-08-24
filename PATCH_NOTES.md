@@ -1,5 +1,12 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-24 — Biological building portraits
+
+- Added the supplied portraits for the **Neural Cluster**, **Industrial Stomach**, **Current Organ**, **Fission Cyst**, and **Ascension Womb**.
+- Assigned each image to its matching building in the production chooser, Civilopedia, notifications, and the Brood Node dashboard.
+- Added a dedicated building atlas so every existing unit, improvement, and promotion portrait remains physically unchanged.
+- Extracted the dedicated medallions from the Neural Cluster and Current Organ presentation cards so their text panels are not crushed into the in-game icon.
+
 ## 2026-08-24 — Tabbed metabolism dashboard
 
 - Replaced the terminal-like continuous text ledger with a readable card-based dashboard that always opens on the **Overview** tab.

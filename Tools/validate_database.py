@@ -106,6 +106,28 @@ def validate_status_panel(root: Path) -> None:
     assert "SetSizeX" in panel_lua, "Dashboard progress bars are no longer dynamic"
 
 
+def validate_building_atlas_packaging(root: Path) -> None:
+    expected = {
+        f"Art/Atlases/Fleshborn_Buildings_{size}.dds"
+        for size in (256, 128, 80, 64, 45, 32)
+    }
+
+    modinfo = ElementTree.parse(root / "The Fleshborn Chorus (v 1).modinfo")
+    modinfo_files = {
+        (element.text or "").replace("\\", "/")
+        for element in modinfo.iter("File")
+    }
+    assert expected <= modinfo_files, "Building atlas is missing from the modinfo package"
+
+    project = ElementTree.parse(root / "TheFleshbornChorus.civ5proj")
+    project_files = {
+        element.attrib["Include"].replace("\\", "/")
+        for element in project.iter("{http://schemas.microsoft.com/developer/msbuild/2003}Content")
+        if "Include" in element.attrib
+    }
+    assert expected <= project_files, "Building atlas is missing from the ModBuddy project"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("debug_database", type=Path)
@@ -114,6 +136,7 @@ def main() -> None:
 
     root = args.project_root.resolve()
     validate_status_panel(root)
+    validate_building_atlas_packaging(root)
     with tempfile.TemporaryDirectory(prefix="fleshborn-db-") as temporary:
         validation_database = Path(temporary) / "Civ5DebugDatabase.db"
         shutil.copy2(args.debug_database, validation_database)
@@ -127,7 +150,7 @@ def main() -> None:
             database.executescript((root / "SQL" / "10_Fleshborn_Text.sql").read_text(encoding="utf-8-sig"))
             database.commit()
 
-            assert scalar(database, "SELECT COUNT(*) FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'") == 21
+            assert scalar(database, "SELECT COUNT(*) FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'") == 27
             for filename, icon_size, columns, rows in database.execute(
                 """SELECT Filename, IconSize, IconsPerRow, IconsPerColumn
                    FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'"""
@@ -163,6 +186,11 @@ def main() -> None:
                    WHERE Type = 'BUILD_FLESHBORN_FEEDING_FIELD'
                    AND ImprovementType = 'IMPROVEMENT_FARM'""",
             ) == 1
+            fleshborn_icon_capacity = scalar(
+                database,
+                """SELECT MAX(IconsPerRow * IconsPerColumn)
+                   FROM IconTextureAtlases WHERE Atlas = 'FLESHBORN_ICON_ATLAS'""",
+            )
             portrait_tables = (
                 ("Units", "PortraitIndex"),
                 ("Buildings", "PortraitIndex"),
@@ -175,7 +203,7 @@ def main() -> None:
                     database,
                     f"""SELECT COUNT(*) FROM {table}
                         WHERE IconAtlas = 'FLESHBORN_ICON_ATLAS'
-                        AND ({index_column} < 0 OR {index_column} >= 16)""",
+                        AND ({index_column} < 0 OR {index_column} >= {fleshborn_icon_capacity})""",
                 )
                 assert invalid == 0, f"Out-of-range Fleshborn icon index in {table}"
             assert scalar(
@@ -228,6 +256,20 @@ def main() -> None:
                    AND BuildingClassType = 'BUILDINGCLASS_LIBRARY'
                    AND BuildingType = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'""",
             ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Buildings WHERE
+                   (Type = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'
+                    AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 0)
+                   OR (Type = 'BUILDING_FLESHBORN_BIO_FACTORY'
+                    AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 1)
+                   OR (Type = 'BUILDING_FLESHBORN_BIO_HYDRO_PLANT'
+                    AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 2)
+                   OR (Type = 'BUILDING_FLESHBORN_BIO_NUCLEAR_PLANT'
+                    AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 3)
+                   OR (Type = 'BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY'
+                    AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 4)""",
+            ) == 5
             assert scalar(
                 database,
                 """SELECT COUNT(*) FROM Buildings

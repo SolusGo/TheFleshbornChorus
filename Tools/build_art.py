@@ -8,7 +8,7 @@ import shutil
 from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 
 SOURCE_FILES = {
@@ -34,6 +34,11 @@ SOURCE_FILES = {
     "dom_v1": "Dawn_of_Man_v1.png",
     "warform": "Warform.png",
     "colony_bud_v2": "Colony_Bud_v2.png",
+    "neural_cluster": "Neural_Cluster.png",
+    "industrial_stomach": "Industrial_Stomach.png",
+    "current_organ": "Current_Organ.png",
+    "fission_cyst": "Fission_Cyst.png",
+    "ascension_womb": "Ascension_Womb.png",
 }
 
 IMPORT_NAMES = {
@@ -60,6 +65,11 @@ IMPORT_NAMES = {
         "dom_v1": "Dawn_of_Man_v1 (3).png",
         "warform": "Warform (3).png",
         "colony_bud_v2": "Colony_Bud_v2 (3).png",
+        "neural_cluster": "Neural_Cluster.png",
+        "industrial_stomach": "Industrial_Stomach.png",
+        "current_organ": "Current_Organ.png",
+        "fission_cyst": "Fission_Cyst.png",
+        "ascension_womb": "Ascension_Womb.png",
     }.items()
 }
 
@@ -81,6 +91,27 @@ ICON_ORDER = (
     "colony_bud_v1",
 )
 
+BUILDING_ICON_ORDER = (
+    "neural_cluster",
+    "industrial_stomach",
+    "current_organ",
+    "fission_cyst",
+    "ascension_womb",
+)
+
+ICON_COLUMNS = 4
+ICON_ROWS = 4
+BUILDING_ICON_COLUMNS = 8
+BUILDING_ICON_ROWS = 1
+
+# Neural Cluster and Current Organ were supplied as presentation cards. Their
+# upper-left medallions are the actual square building icons; using the full
+# cards would crush text and landscape artwork into a tiny portrait slot.
+ICON_CROPS = {
+    "neural_cluster": (10, 10, 222, 222),
+    "current_organ": (4, 7, 224, 227),
+}
+
 
 def import_sources(import_dir: Path, source_dir: Path) -> None:
     source_dir.mkdir(parents=True, exist_ok=True)
@@ -89,6 +120,19 @@ def import_sources(import_dir: Path, source_dir: Path) -> None:
         if not incoming.is_file():
             raise FileNotFoundError(incoming)
         shutil.copy2(incoming, source_dir / clean_name)
+
+
+def import_explicit_sources(assignments: list[str], source_dir: Path) -> None:
+    """Import selected source art as KEY=PATH without requiring the full art set."""
+    source_dir.mkdir(parents=True, exist_ok=True)
+    for assignment in assignments:
+        key, separator, raw_path = assignment.partition("=")
+        if not separator or key not in SOURCE_FILES:
+            raise ValueError(f"Expected a known source KEY=PATH, got: {assignment}")
+        incoming = Path(raw_path).expanduser().resolve()
+        if not incoming.is_file():
+            raise FileNotFoundError(incoming)
+        shutil.copy2(incoming, source_dir / SOURCE_FILES[key])
 
 
 def edge_black_transparency(image: Image.Image, threshold: int = 30) -> Image.Image:
@@ -138,6 +182,15 @@ def edge_black_transparency(image: Image.Image, threshold: int = 30) -> Image.Im
     return image
 
 
+def circular_cutout(image: Image.Image) -> Image.Image:
+    """Remove presentation-card pixels outside a supplied circular medallion."""
+    image = image.convert("RGBA")
+    mask = Image.new("L", image.size, 0)
+    ImageDraw.Draw(mask).ellipse((2, 2, image.width - 3, image.height - 3), fill=255)
+    image.putalpha(ImageChops.multiply(image.getchannel("A"), mask))
+    return image
+
+
 def cover(image: Image.Image, target: tuple[int, int], focus_x: float = 0.5) -> Image.Image:
     target_width, target_height = target
     ratio = max(target_width / image.width, target_height / image.height)
@@ -161,13 +214,43 @@ def build_one_cell_atlas(source: Path, sizes: tuple[int, ...], output: Path, ste
 
 
 def build_shared_atlas(source_dir: Path, output: Path) -> None:
-    icons = [edge_black_transparency(Image.open(source_dir / SOURCE_FILES[key])) for key in ICON_ORDER]
+    icons = []
+    for key in ICON_ORDER:
+        icon = Image.open(source_dir / SOURCE_FILES[key])
+        icon = edge_black_transparency(icon)
+        icons.append(icon)
     for size in (256, 128, 80, 64, 45, 32):
-        atlas = Image.new("RGBA", (size * 4, size * 4), (0, 0, 0, 0))
+        atlas = Image.new(
+            "RGBA", (size * ICON_COLUMNS, size * ICON_ROWS), (0, 0, 0, 0)
+        )
         for index, icon in enumerate(icons):
             tile = icon.resize((size, size), Image.Resampling.LANCZOS)
-            atlas.alpha_composite(tile, ((index % 4) * size, (index // 4) * size))
+            atlas.alpha_composite(
+                tile, ((index % ICON_COLUMNS) * size, (index // ICON_COLUMNS) * size)
+            )
         save_dds(atlas, output / f"Fleshborn_Icons_{size}.dds")
+
+
+def build_building_atlas(source_dir: Path, output: Path) -> None:
+    icons = []
+    for key in BUILDING_ICON_ORDER:
+        icon = Image.open(source_dir / SOURCE_FILES[key])
+        if key in ICON_CROPS:
+            icon = icon.crop(ICON_CROPS[key])
+        icon = edge_black_transparency(icon)
+        if key in ICON_CROPS:
+            icon = circular_cutout(icon)
+        icons.append(icon)
+    for size in (256, 128, 80, 64, 45, 32):
+        atlas = Image.new(
+            "RGBA",
+            (size * BUILDING_ICON_COLUMNS, size * BUILDING_ICON_ROWS),
+            (0, 0, 0, 0),
+        )
+        for index, icon in enumerate(icons):
+            tile = icon.resize((size, size), Image.Resampling.LANCZOS)
+            atlas.alpha_composite(tile, (index * size, 0))
+        save_dds(atlas, output / f"Fleshborn_Buildings_{size}.dds")
 
 
 def build_alpha_atlas(source: Path, sizes: tuple[int, ...], output: Path) -> None:
@@ -217,6 +300,17 @@ def build_screens(source_dir: Path, output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--import-dir", type=Path)
+    parser.add_argument(
+        "--source",
+        action="append",
+        default=[],
+        help="Import one source image as KEY=PATH; may be repeated",
+    )
+    parser.add_argument(
+        "--icons-only",
+        action="store_true",
+        help="Rebuild only the shared unit/building/improvement icon atlas",
+    )
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
 
@@ -227,12 +321,17 @@ def main() -> None:
 
     if args.import_dir:
         import_sources(args.import_dir.resolve(), source_dir)
+    if args.source:
+        import_explicit_sources(args.source, source_dir)
 
     missing = [path for path in SOURCE_FILES.values() if not (source_dir / path).is_file()]
     if missing:
         raise FileNotFoundError("Missing source art: " + ", ".join(missing))
 
     build_shared_atlas(source_dir, atlas_dir)
+    build_building_atlas(source_dir, atlas_dir)
+    if args.icons_only:
+        return
     build_one_cell_atlas(
         source_dir / SOURCE_FILES["civilization"],
         (256, 128, 80, 64, 45, 32),
