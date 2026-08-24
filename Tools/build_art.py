@@ -101,8 +101,8 @@ BUILDING_ICON_ORDER = (
 
 ICON_COLUMNS = 4
 ICON_ROWS = 4
-BUILDING_ICON_COLUMNS = 8
-BUILDING_ICON_ROWS = 1
+BUILDING_ICON_COLUMNS = 4
+BUILDING_ICON_ROWS = 2
 
 # Neural Cluster and Current Organ were supplied as presentation cards. Their
 # upper-left medallions are the actual square building icons; using the full
@@ -249,7 +249,13 @@ def build_building_atlas(source_dir: Path, output: Path) -> None:
         )
         for index, icon in enumerate(icons):
             tile = icon.resize((size, size), Image.Resampling.LANCZOS)
-            atlas.alpha_composite(tile, (index * size, 0))
+            atlas.alpha_composite(
+                tile,
+                (
+                    (index % BUILDING_ICON_COLUMNS) * size,
+                    (index // BUILDING_ICON_COLUMNS) * size,
+                ),
+            )
         save_dds(atlas, output / f"Fleshborn_Buildings_{size}.dds")
 
 

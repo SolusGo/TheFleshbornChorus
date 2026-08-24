@@ -61,12 +61,12 @@ INSERT OR REPLACE INTO IconTextureAtlases
 ('FLESHBORN_ICON_ATLAS', 64,  'Fleshborn_Icons_64.dds',  4, 4),
 ('FLESHBORN_ICON_ATLAS', 45,  'Fleshborn_Icons_45.dds',  4, 4),
 ('FLESHBORN_ICON_ATLAS', 32,  'Fleshborn_Icons_32.dds',  4, 4),
-('FLESHBORN_BUILDING_ATLAS', 256, 'Fleshborn_Buildings_256.dds', 8, 1),
-('FLESHBORN_BUILDING_ATLAS', 128, 'Fleshborn_Buildings_128.dds', 8, 1),
-('FLESHBORN_BUILDING_ATLAS', 80,  'Fleshborn_Buildings_80.dds',  8, 1),
-('FLESHBORN_BUILDING_ATLAS', 64,  'Fleshborn_Buildings_64.dds',  8, 1),
-('FLESHBORN_BUILDING_ATLAS', 45,  'Fleshborn_Buildings_45.dds',  8, 1),
-('FLESHBORN_BUILDING_ATLAS', 32,  'Fleshborn_Buildings_32.dds',  8, 1);
+('FLESHBORN_BUILDING_ATLAS', 256, 'Fleshborn_Buildings_256.dds', 4, 2),
+('FLESHBORN_BUILDING_ATLAS', 128, 'Fleshborn_Buildings_128.dds', 4, 2),
+('FLESHBORN_BUILDING_ATLAS', 80,  'Fleshborn_Buildings_80.dds',  4, 2),
+('FLESHBORN_BUILDING_ATLAS', 64,  'Fleshborn_Buildings_64.dds',  4, 2),
+('FLESHBORN_BUILDING_ATLAS', 45,  'Fleshborn_Buildings_45.dds',  4, 2),
+('FLESHBORN_BUILDING_ATLAS', 32,  'Fleshborn_Buildings_32.dds',  4, 2);
 
 INSERT INTO Traits
 (Type, Description, ShortDescription, CityUnhappinessModifier, PopulationUnhappinessModifier,

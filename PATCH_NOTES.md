@@ -1,5 +1,11 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-24 — Building atlas crash-safety hotfix
+
+- Repacked the five new building portraits from a 2048-pixel-wide 8×1 texture into a conservative 4×2 atlas.
+- Kept every building portrait index unchanged while reducing the largest texture dimension and matching Civ V's conventional multi-row atlas layout.
+- Confirmed the Chorus database and Lua loaded without a logged Fleshborn error; this change removes the newest graphics-resource risk behind an otherwise unlogged hard crash.
+
 ## 2026-08-24 — Biological building portraits
 
 - Added the supplied portraits for the **Neural Cluster**, **Industrial Stomach**, **Current Organ**, **Fission Cyst**, and **Ascension Womb**.

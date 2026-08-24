@@ -151,6 +151,12 @@ def main() -> None:
             database.commit()
 
             assert scalar(database, "SELECT COUNT(*) FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'") == 27
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM IconTextureAtlases
+                   WHERE Atlas = 'FLESHBORN_BUILDING_ATLAS'
+                   AND IconsPerRow = 4 AND IconsPerColumn = 2""",
+            ) == 6
             for filename, icon_size, columns, rows in database.execute(
                 """SELECT Filename, IconSize, IconsPerRow, IconsPerColumn
                    FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'"""
