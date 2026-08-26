@@ -111,6 +111,10 @@ def validate_building_atlas_packaging(root: Path) -> None:
         f"Art/Atlases/Fleshborn_Buildings_{size}.dds"
         for size in (256, 128, 80, 64, 45, 32)
     }
+    expected.update(
+        f"Art/Atlases/Fleshborn_Neural_{size}.dds"
+        for size in (256, 128, 80, 64, 45, 32)
+    )
 
     modinfo = ElementTree.parse(root / "The Fleshborn Chorus (v 1).modinfo")
     modinfo_files = {
@@ -150,12 +154,18 @@ def main() -> None:
             database.executescript((root / "SQL" / "10_Fleshborn_Text.sql").read_text(encoding="utf-8-sig"))
             database.commit()
 
-            assert scalar(database, "SELECT COUNT(*) FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'") == 27
+            assert scalar(database, "SELECT COUNT(*) FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'") == 33
             assert scalar(
                 database,
                 """SELECT COUNT(*) FROM IconTextureAtlases
                    WHERE Atlas = 'FLESHBORN_BUILDING_ATLAS'
                    AND IconsPerRow = 4 AND IconsPerColumn = 2""",
+            ) == 6
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM IconTextureAtlases
+                   WHERE Atlas = 'FLESHBORN_NEURAL_ATLAS'
+                   AND IconsPerRow = 1 AND IconsPerColumn = 1""",
             ) == 6
             for filename, icon_size, columns, rows in database.execute(
                 """SELECT Filename, IconSize, IconsPerRow, IconsPerColumn
@@ -265,9 +275,7 @@ def main() -> None:
             assert scalar(
                 database,
                 """SELECT COUNT(*) FROM Buildings WHERE
-                   (Type = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'
-                    AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 0)
-                   OR (Type = 'BUILDING_FLESHBORN_BIO_FACTORY'
+                   (Type = 'BUILDING_FLESHBORN_BIO_FACTORY'
                     AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 1)
                    OR (Type = 'BUILDING_FLESHBORN_BIO_HYDRO_PLANT'
                     AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 2)
@@ -275,7 +283,14 @@ def main() -> None:
                     AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 3)
                    OR (Type = 'BUILDING_FLESHBORN_BIO_SPACESHIP_FACTORY'
                     AND IconAtlas = 'FLESHBORN_BUILDING_ATLAS' AND PortraitIndex = 4)""",
-            ) == 5
+            ) == 4
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Buildings
+                   WHERE Type = 'BUILDING_FLESHBORN_NEURAL_CLUSTER'
+                   AND IconAtlas = 'FLESHBORN_NEURAL_ATLAS'
+                   AND PortraitIndex = 0""",
+            ) == 1
             assert scalar(
                 database,
                 """SELECT COUNT(*) FROM Buildings

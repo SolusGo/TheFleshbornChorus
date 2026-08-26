@@ -259,6 +259,18 @@ def build_building_atlas(source_dir: Path, output: Path) -> None:
         save_dds(atlas, output / f"Fleshborn_Buildings_{size}.dds")
 
 
+def build_neural_atlas(source_dir: Path, output: Path) -> None:
+    """Build a dedicated one-cell atlas for reliable CityView resolution."""
+    icon = Image.open(source_dir / SOURCE_FILES["neural_cluster"])
+    icon = icon.crop(ICON_CROPS["neural_cluster"])
+    icon = circular_cutout(edge_black_transparency(icon))
+    for size in (256, 128, 80, 64, 45, 32):
+        save_dds(
+            icon.resize((size, size), Image.Resampling.LANCZOS),
+            output / f"Fleshborn_Neural_{size}.dds",
+        )
+
+
 def build_alpha_atlas(source: Path, sizes: tuple[int, ...], output: Path) -> None:
     source_icon = Image.open(source).convert("RGB")
     width, height = source_icon.size
@@ -336,6 +348,7 @@ def main() -> None:
 
     build_shared_atlas(source_dir, atlas_dir)
     build_building_atlas(source_dir, atlas_dir)
+    build_neural_atlas(source_dir, atlas_dir)
     if args.icons_only:
         return
     build_one_cell_atlas(

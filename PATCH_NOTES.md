@@ -1,5 +1,12 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-27 — Neural Cluster portrait reliability
+
+- Moved the Neural Cluster portrait to a dedicated one-cell atlas so CityView,
+  Civilopedia, and the Brood Node dashboard no longer depend on resolving its
+  slot in the shared biological-building sheet.
+- Added package and database validation for every dedicated Neural atlas size.
+
 ## 2026-08-24 — Building atlas crash-safety hotfix
 
 - Repacked the five new building portraits from a 2048-pixel-wide 8×1 texture into a conservative 4×2 atlas.

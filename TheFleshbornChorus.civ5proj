@@ -130,6 +130,12 @@
     <Content Include="Art\Atlases\Fleshborn_Buildings_64.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
     <Content Include="Art\Atlases\Fleshborn_Buildings_45.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
     <Content Include="Art\Atlases\Fleshborn_Buildings_32.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Neural_256.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Neural_128.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Neural_80.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Neural_64.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Neural_45.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
+    <Content Include="Art\Atlases\Fleshborn_Neural_32.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
     <Content Include="Art\Screens\Fleshborn_DOM.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
     <Content Include="Art\Screens\Fleshborn_Map.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>
     <Content Include="Art\Screens\Fleshborn_Diplomacy.dds"><ImportIntoVFS>True</ImportIntoVFS></Content>

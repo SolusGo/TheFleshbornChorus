@@ -66,7 +66,13 @@ INSERT OR REPLACE INTO IconTextureAtlases
 ('FLESHBORN_BUILDING_ATLAS', 80,  'Fleshborn_Buildings_80.dds',  4, 2),
 ('FLESHBORN_BUILDING_ATLAS', 64,  'Fleshborn_Buildings_64.dds',  4, 2),
 ('FLESHBORN_BUILDING_ATLAS', 45,  'Fleshborn_Buildings_45.dds',  4, 2),
-('FLESHBORN_BUILDING_ATLAS', 32,  'Fleshborn_Buildings_32.dds',  4, 2);
+('FLESHBORN_BUILDING_ATLAS', 32,  'Fleshborn_Buildings_32.dds',  4, 2),
+('FLESHBORN_NEURAL_ATLAS', 256, 'Fleshborn_Neural_256.dds', 1, 1),
+('FLESHBORN_NEURAL_ATLAS', 128, 'Fleshborn_Neural_128.dds', 1, 1),
+('FLESHBORN_NEURAL_ATLAS', 80,  'Fleshborn_Neural_80.dds',  1, 1),
+('FLESHBORN_NEURAL_ATLAS', 64,  'Fleshborn_Neural_64.dds',  1, 1),
+('FLESHBORN_NEURAL_ATLAS', 45,  'Fleshborn_Neural_45.dds',  1, 1),
+('FLESHBORN_NEURAL_ATLAS', 32,  'Fleshborn_Neural_32.dds',  1, 1);
 
 INSERT INTO Traits
 (Type, Description, ShortDescription, CityUnhappinessModifier, PopulationUnhappinessModifier,
@@ -577,7 +583,7 @@ UPDATE Fleshborn_NeuralCopy SET
 INSERT INTO Buildings SELECT * FROM Fleshborn_NeuralCopy;
 DROP TABLE Fleshborn_NeuralCopy;
 
-UPDATE Buildings SET PortraitIndex = 0, IconAtlas = 'FLESHBORN_BUILDING_ATLAS'
+UPDATE Buildings SET PortraitIndex = 0, IconAtlas = 'FLESHBORN_NEURAL_ATLAS'
 WHERE Type = 'BUILDING_FLESHBORN_NEURAL_CLUSTER';
 
 INSERT INTO Building_Flavors
