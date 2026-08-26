@@ -6,6 +6,8 @@
   Civilopedia, and the Brood Node dashboard no longer depend on resolving its
   slot in the shared biological-building sheet.
 - Added package and database validation for every dedicated Neural atlas size.
+- Padded the technology tree's 45px DXT portrait to a block-aligned 4×4 sheet;
+  the icon remains in slot 0, while the unused cells stay transparent.
 
 ## 2026-08-24 — Building atlas crash-safety hotfix
 

@@ -71,7 +71,7 @@ INSERT OR REPLACE INTO IconTextureAtlases
 ('FLESHBORN_NEURAL_ATLAS', 128, 'Fleshborn_Neural_128.dds', 1, 1),
 ('FLESHBORN_NEURAL_ATLAS', 80,  'Fleshborn_Neural_80.dds',  1, 1),
 ('FLESHBORN_NEURAL_ATLAS', 64,  'Fleshborn_Neural_64.dds',  1, 1),
-('FLESHBORN_NEURAL_ATLAS', 45,  'Fleshborn_Neural_45.dds',  1, 1),
+('FLESHBORN_NEURAL_ATLAS', 45,  'Fleshborn_Neural_45.dds',  4, 4),
 ('FLESHBORN_NEURAL_ATLAS', 32,  'Fleshborn_Neural_32.dds',  1, 1);
 
 INSERT INTO Traits

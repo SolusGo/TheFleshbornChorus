@@ -165,8 +165,16 @@ def main() -> None:
                 database,
                 """SELECT COUNT(*) FROM IconTextureAtlases
                    WHERE Atlas = 'FLESHBORN_NEURAL_ATLAS'
+                   AND IconSize != 45
                    AND IconsPerRow = 1 AND IconsPerColumn = 1""",
-            ) == 6
+            ) == 5
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM IconTextureAtlases
+                   WHERE Atlas = 'FLESHBORN_NEURAL_ATLAS'
+                   AND IconSize = 45
+                   AND IconsPerRow = 4 AND IconsPerColumn = 4""",
+            ) == 1
             for filename, icon_size, columns, rows in database.execute(
                 """SELECT Filename, IconSize, IconsPerRow, IconsPerColumn
                    FROM IconTextureAtlases WHERE Atlas LIKE 'FLESHBORN_%'"""

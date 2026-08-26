@@ -265,10 +265,16 @@ def build_neural_atlas(source_dir: Path, output: Path) -> None:
     icon = icon.crop(ICON_CROPS["neural_cluster"])
     icon = circular_cutout(edge_black_transparency(icon))
     for size in (256, 128, 80, 64, 45, 32):
-        save_dds(
-            icon.resize((size, size), Image.Resampling.LANCZOS),
-            output / f"Fleshborn_Neural_{size}.dds",
-        )
+        tile = icon.resize((size, size), Image.Resampling.LANCZOS)
+        if size == 45:
+            # DXT textures are decoded in 4x4 pixel blocks. A one-cell 45x45
+            # texture works in Pillow but is rejected by Civ V's tech-tree
+            # renderer. Pad this atlas to 4x4 cells while retaining index 0.
+            atlas = Image.new("RGBA", (size * 4, size * 4), (0, 0, 0, 0))
+            atlas.alpha_composite(tile, (0, 0))
+        else:
+            atlas = tile
+        save_dds(atlas, output / f"Fleshborn_Neural_{size}.dds")
 
 
 def build_alpha_atlas(source: Path, sizes: tuple[int, ...], output: Path) -> None:
