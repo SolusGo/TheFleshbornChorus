@@ -36,8 +36,8 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_UNIT_FLESHBORN_DEVOURER_PEDIA', 'The Devourer is a compact knot of jaws, grasping tendons, and digestive bladders. It is sent where the Chorus expects fresh resistance. What survives the first impact becomes fuel for the next.'),
 
 ('TXT_KEY_UNIT_FLESHBORN_HARVESTER', 'Harvester'),
-('TXT_KEY_UNIT_FLESHBORN_HARVESTER_HELP', 'Worker replacement. Builds Feeding Fields, Roads, and normal non-Farm improvements. May digest Forest for 20 [ICON_FOOD], Jungle for 15, or Marsh for 12, feeding the nearest Brood Node instead of producing [ICON_PRODUCTION] Production.'),
-('TXT_KEY_UNIT_FLESHBORN_HARVESTER_STRATEGY', 'Use Harvesters to spread Feeding Fields and convert unwanted features directly into Food.'),
+('TXT_KEY_UNIT_FLESHBORN_HARVESTER_HELP', 'Worker replacement. Builds Feeding Fields, Roads, and normal non-Farm improvements. Feeding Fields metabolize Wheat, Bananas, Cattle, Sheep, Deer, Sugar, and Citrus. May digest Forest for 20 [ICON_FOOD], Jungle for 15, or Marsh for 12, feeding the nearest Brood Node instead of producing [ICON_PRODUCTION] Production.'),
+('TXT_KEY_UNIT_FLESHBORN_HARVESTER_STRATEGY', 'Use Harvesters to spread Feeding Fields, consume edible resources, and convert unwanted features directly into Food.'),
 ('TXT_KEY_UNIT_FLESHBORN_HARVESTER_PEDIA', 'A Harvester is equal parts limb, mouth, and patient tool. Its task is not to cultivate land in the human sense, but to connect useful biomass to the nearest hungry organ.'),
 
 ('TXT_KEY_UNIT_FLESHBORN_COLONY_BUD', 'Colony Bud'),
@@ -72,11 +72,11 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_BUILDING_FLESHBORN_BLOOM_HELP', '+10% [ICON_FOOD] Food during a Golden Age.'),
 
 ('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD', 'Feeding Field'),
-('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_HELP', '+1 [ICON_FOOD] Food. +1 with Fresh Water, +1 at Civil Service, and +1 at Fertilizer. A worked Feeding Field with at least three adjacent Feeding Fields gains +1 Food (maximum +1). May be built while preserving Marsh.'),
-('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_PEDIA', 'A Feeding Field is a thin agricultural organ spread across the soil. Rootlets sort edible matter, capillaries draw water, and the whole mat contracts toward the Brood Node when it is time to feed.'),
+('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_HELP', '+1 [ICON_FOOD] Food. +1 with Fresh Water, +1 at Civil Service, and +1 at Fertilizer. A worked Feeding Field with at least three adjacent Feeding Fields gains +1 Food (maximum +1). Metabolizes Wheat (+1), Bananas, Cattle, Sheep, or Deer (+2), and Sugar or Citrus (+3). Edible luxuries are not connected for trade. May preserve Marsh; Forest and Jungle must be digested first.'),
+('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_PEDIA', 'A Feeding Field is a thin agricultural organ spread across the soil. Rootlets sort edible matter, capillaries draw water, and the whole mat contracts toward the Brood Node when it is time to feed. It engulfs edible resources without erasing them from the land, converting their useful biomass into nourishment rather than commerce.'),
 ('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD', 'Construct a Feeding Field'),
-('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_HELP', 'Constructs the Fleshborn Feeding Field improvement.'),
-('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_REC', 'Build Feeding Fields wherever a city can work their Food, especially in connected clusters.'),
+('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_HELP', 'Constructs a Feeding Field. May replace the normal improvement on Wheat, Bananas, Cattle, Sheep, Deer, Sugar, or Citrus and metabolize the worked resource into extra Food.'),
+('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_REC', 'Build Feeding Fields in connected clusters and over edible resources. Digest Forest or Jungle before engulfing a covered resource.'),
 ('TXT_KEY_BUILD_FLESHBORN_DIGEST_FOREST', 'Digest Forest'),
 ('TXT_KEY_BUILD_FLESHBORN_DIGEST_JUNGLE', 'Digest Jungle'),
 ('TXT_KEY_BUILD_FLESHBORN_DIGEST_MARSH', 'Digest Marsh'),

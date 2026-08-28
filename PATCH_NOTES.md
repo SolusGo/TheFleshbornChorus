@@ -1,5 +1,15 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-28 — Edible-resource Feeding Fields
+
+- Feeding Fields can now engulf Wheat, Bananas, Cattle, Sheep, Deer, Sugar, and Citrus without deleting the resource from the map.
+- Worked Feeding Fields gain +1 Food from Wheat, +2 from Bananas/Cattle/Sheep/Deer, and +3 from Sugar/Citrus.
+- Sugar and Citrus beneath a Feeding Field are not connected as trade luxuries; their value is metabolized into Food instead of creating a second conventional economy.
+- Fleshborn Harvesters can no longer build the normal Plantation, Pasture, or Camp on those edible resources. Non-edible resources and other civilizations are unchanged.
+- Fish and Crab remain aquatic resources handled by Fishing Boats. Forest and Jungle must be digested before building over a covered edible resource; Marsh may still be preserved.
+- Changed Feeding Field construction to validate against the hidden civilization-specific improvement, then convert immediately to a genuine stock Farm when complete. This permits resource-specific placement while retaining the renderer-proof Farm world model.
+- Added database validation for all edible-resource placement rows, zero resource-trade connections, and the custom-build-to-visible-Farm conversion contract.
+
 ## 2026-08-27 — Neural Cluster portrait reliability
 
 - Moved the Neural Cluster portrait to a dedicated one-cell atlas so CityView,

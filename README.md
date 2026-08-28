@@ -100,7 +100,7 @@ If the empire cannot meet the requirement, military units gain **The Hunger**. E
 
 Units are not automatically killed. A starving Chorus becomes weak rather than entering an unavoidable deletion spiral.
 
-This creates the intended counterplay: pillage Feeding Fields, Plantations, Fishing Boats, and Food trade routes. An army that cannot be defeated head-on can still be starved.
+This creates the intended counterplay: pillage Feeding Fields, Fishing Boats, and Food trade routes. An army that cannot be defeated head-on can still be starved.
 
 ## No strategic resources
 
@@ -180,9 +180,12 @@ Replaces the Farm through a Fleshborn-only Harvester action. The map uses Civ V'
 - +1 Food at Fertilizer;
 - a **worked** Feeding Field with at least three adjacent Feeding Fields gains +1 Food, capped at +1;
 - may be constructed while preserving Marsh;
-- Sugar, Bananas, and Citrus worked under a Plantation provide +2 additional Food to the city.
+- may replace the ordinary resource improvement on **Wheat, Bananas, Cattle, Sheep, Deer, Sugar, and Citrus**;
+- when worked, metabolizes Wheat for **+1 Food**, Bananas/Cattle/Sheep/Deer for **+2 Food**, and Sugar/Citrus for **+3 Food**;
+- does not connect edible luxuries for trade, so Sugar and Citrus become nourishment rather than a second Happiness or commerce economy;
+- preserves the resource itself. Forest and Jungle must be digested before a covered resource can receive its Feeding Field; Fish and Crab continue to use Fishing Boats.
 
-The Harvester button, Civilopedia, and completed map tooltip all call it **Feeding Field** and use the custom portrait where Civ V permits one. A context-sensitive UI layer changes only Chorus-owned agricultural plots; other civilizations continue to see their ordinary Farms. Fresh Water, universal technology scaling, and adjacency differences are applied through a hidden city Food counter, so they are included in city output even though the stock tile tooltip cannot display those custom yield lines.
+The Harvester button, Civilopedia, and completed map tooltip all call it **Feeding Field** and use the custom portrait where Civ V permits one. The build briefly uses a hidden Chorus-only improvement for resource placement validation, then becomes Civ V's genuine Farm improvement as soon as construction finishes so its world model is guaranteed to render. A context-sensitive UI layer changes only Chorus-owned agricultural plots; other civilizations continue to see their ordinary Farms. Fresh Water, universal technology scaling, adjacency, and edible-resource differences are applied through hidden city Food counters, so they are included in city output even though the stock tile tooltip cannot display every custom yield line.
 
 ### Digestive Chamber
 
@@ -215,7 +218,7 @@ When a military unit dies with a Fleshborn Devourer adjacent to it, the nearest 
 
 ### Harvester
 
-Replaces the Worker, and one Harvester accompanies the initial Colony Bud. It builds Feeding Fields, Roads, and other normal non-Farm improvements.
+Replaces the Worker, and one Harvester accompanies the initial Colony Bud. It builds Feeding Fields, Roads, and other normal non-Farm improvements. On edible land resources, the Feeding Field replaces the conventional Farm, Plantation, Pasture, or Camp route; ordinary resource improvements remain available elsewhere.
 
 Its digestion actions remove a feature and feed the nearest city:
 

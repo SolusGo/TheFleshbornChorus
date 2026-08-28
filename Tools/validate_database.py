@@ -208,8 +208,23 @@ def main() -> None:
                 database,
                 """SELECT COUNT(*) FROM Builds
                    WHERE Type = 'BUILD_FLESHBORN_FEEDING_FIELD'
-                   AND ImprovementType = 'IMPROVEMENT_FARM'""",
+                   AND ImprovementType = 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD'""",
             ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Improvement_ResourceTypes
+                   WHERE ImprovementType = 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD'
+                   AND ResourceType IN (
+                       'RESOURCE_WHEAT', 'RESOURCE_BANANA', 'RESOURCE_COW',
+                       'RESOURCE_SHEEP', 'RESOURCE_DEER', 'RESOURCE_SUGAR',
+                       'RESOURCE_CITRUS'
+                   )
+                   AND ResourceMakesValid = 1 AND ResourceTrade = 0""",
+            ) == 7
+            core_lua = (root / "Lua" / "FleshbornCore.lua").read_text(encoding="utf-8-sig")
+            assert "if buildType == BUILD_FEEDING_FIELD then" in core_lua
+            assert "FB_MakeFeedingFieldVisible(plot)" in core_lua
+            assert 'plot:SetImprovementType(IMPROVEMENT_FARM)' in core_lua
             fleshborn_icon_capacity = scalar(
                 database,
                 """SELECT MAX(IconsPerRow * IconsPerColumn)

@@ -662,11 +662,11 @@ INSERT INTO Process_Flavors VALUES
 -- Feeding Field and Harvester build actions
 -- --------------------------------------------------------------------------
 
--- Keep a custom improvement row for the Civilopedia and interface portrait,
--- but place the genuine stock Farm on the map.  Civ V's landmark renderer can
--- ignore a distinct improvement even when that row points directly at the
--- Farm art tag.  A real IMPROVEMENT_FARM is the only renderer-proof way to
--- guarantee its construction, completed, pillaged, resource, and era models.
+-- The build validates against a custom Chorus-only improvement so edible
+-- resources can make it legal. Lua replaces the completed improvement with a
+-- genuine stock Farm immediately afterward. Civ V's landmark renderer can
+-- ignore a distinct improvement even when that row points directly at Farm
+-- art; the final IMPROVEMENT_FARM guarantees every world-map model.
 DELETE FROM ArtDefine_StrategicView
 WHERE StrategicViewType = 'ART_DEF_IMPROVEMENT_FLESHBORN_FEEDING_FIELD';
 DELETE FROM ArtDefine_Landmarks
@@ -700,6 +700,17 @@ INSERT INTO Improvement_ValidFeatures VALUES
 INSERT INTO Improvement_ResourceTypes
 SELECT 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD', ResourceType, ResourceMakesValid, ResourceTrade, DiscoveryRand, QuantityRequirement
 FROM Improvement_ResourceTypes WHERE ImprovementType = 'IMPROVEMENT_FARM';
+-- Edible resources make the biological field legal but are deliberately not
+-- connected for trade. They remain physically present while Lua converts
+-- their worked biomass into Food for the owning Brood Node.
+INSERT OR REPLACE INTO Improvement_ResourceTypes
+(ImprovementType, ResourceType, ResourceMakesValid, ResourceTrade, DiscoveryRand, QuantityRequirement)
+SELECT 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD', Type, 1, 0, 0, 0
+FROM Resources
+WHERE Type IN (
+ 'RESOURCE_WHEAT', 'RESOURCE_BANANA', 'RESOURCE_COW', 'RESOURCE_SHEEP',
+ 'RESOURCE_DEER', 'RESOURCE_SUGAR', 'RESOURCE_CITRUS'
+);
 INSERT INTO Improvement_Yields VALUES
 ('IMPROVEMENT_FLESHBORN_FEEDING_FIELD', 'YIELD_FOOD', 1);
 INSERT INTO Improvement_FreshWaterYields VALUES
@@ -719,7 +730,7 @@ UPDATE Fleshborn_FeedingBuildCopy SET
  Description = 'TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD',
  Help = 'TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_HELP',
  Recommendation = 'TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_REC',
- ImprovementType = 'IMPROVEMENT_FARM',
+ ImprovementType = 'IMPROVEMENT_FLESHBORN_FEEDING_FIELD',
  IconIndex = 12,
  IconAtlas = 'FLESHBORN_ICON_ATLAS';
 INSERT INTO Builds SELECT * FROM Fleshborn_FeedingBuildCopy;

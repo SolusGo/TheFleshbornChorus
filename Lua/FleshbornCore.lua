@@ -23,6 +23,8 @@ local POLICY_INVARIANTS = GameInfoTypes.POLICY_FLESHBORN_INVARIANTS
 local IMPROVEMENT_FEEDING_FIELD_LEGACY = GameInfoTypes.IMPROVEMENT_FLESHBORN_FEEDING_FIELD
 local IMPROVEMENT_FARM = GameInfoTypes.IMPROVEMENT_FARM
 local IMPROVEMENT_PLANTATION = GameInfoTypes.IMPROVEMENT_PLANTATION
+local IMPROVEMENT_PASTURE = GameInfoTypes.IMPROVEMENT_PASTURE
+local IMPROVEMENT_CAMP = GameInfoTypes.IMPROVEMENT_CAMP
 local PROCESS_GROWTH = GameInfoTypes.PROCESS_FLESHBORN_GROWTH
 local BUILD_FARM = GameInfoTypes.BUILD_FARM
 local BUILD_REMOVE_FOREST = GameInfoTypes.BUILD_REMOVE_FOREST
@@ -46,11 +48,19 @@ for i = 1, 10 do
     FB_HUNGER_PROMOTIONS[i] = GameInfoTypes["PROMOTION_FLESHBORN_HUNGER_" .. tostring(i)]
 end
 
-local FB_EDIBLE_RESOURCES = {}
-for _, resourceType in ipairs({"RESOURCE_SUGAR", "RESOURCE_BANANA", "RESOURCE_CITRUS"}) do
-    local resourceID = GameInfoTypes[resourceType]
+local FB_EDIBLE_RESOURCE_FOOD = {}
+for _, entry in ipairs({
+    {"RESOURCE_WHEAT", 1},
+    {"RESOURCE_BANANA", 2},
+    {"RESOURCE_COW", 2},
+    {"RESOURCE_SHEEP", 2},
+    {"RESOURCE_DEER", 2},
+    {"RESOURCE_SUGAR", 3},
+    {"RESOURCE_CITRUS", 3}
+}) do
+    local resourceID = GameInfoTypes[entry[1]]
     if resourceID ~= nil then
-        FB_EDIBLE_RESOURCES[resourceID] = true
+        FB_EDIBLE_RESOURCE_FOOD[resourceID] = entry[2]
     end
 end
 
@@ -384,11 +394,12 @@ local function FB_UpdateCityDummies(playerID, player, city)
                 if FB_CountAdjacentFeedingFields(plot) >= 3 then
                     adjacencyFood = adjacencyFood + 1
                 end
-            end
 
-            if plot:GetImprovementType() == IMPROVEMENT_PLANTATION
-                and FB_EDIBLE_RESOURCES[plot:GetResourceType(-1)] then
-                edibleFood = edibleFood + 2
+                -- Edible resources remain on the map, but a Feeding Field
+                -- metabolizes them into city Food instead of connecting their
+                -- ordinary Plantation, Pasture, Camp, or luxury economy.
+                edibleFood = edibleFood
+                    + (FB_EDIBLE_RESOURCE_FOOD[plot:GetResourceType(-1)] or 0)
             end
         end
     end
@@ -397,6 +408,21 @@ local function FB_UpdateCityDummies(playerID, player, city)
     FB_SetBuildingCount(city, BUILDING_EDIBLE_FOOD, edibleFood)
     local neuralScience = FB_GetNeuralScience(city)
     FB_SetBuildingCount(city, BUILDING_NEURAL_SCIENCE, neuralScience)
+end
+
+local function FB_MakeFeedingFieldVisible(plot)
+    if plot == nil
+        or IMPROVEMENT_FARM == nil
+        or plot:GetImprovementType() == IMPROVEMENT_FARM then
+        return false
+    end
+
+    local pillaged = plot:IsImprovementPillaged()
+    plot:SetImprovementType(IMPROVEMENT_FARM)
+    if pillaged and plot.SetImprovementPillaged ~= nil then
+        plot:SetImprovementPillaged(true)
+    end
+    return true
 end
 
 local function FB_MigrateLegacyFeedingFields()
@@ -411,12 +437,9 @@ local function FB_MigrateLegacyFeedingFields()
         local plot = Map.GetPlotByIndex(plotIndex)
         if plot ~= nil
             and plot:GetImprovementType() == IMPROVEMENT_FEEDING_FIELD_LEGACY then
-            local pillaged = plot:IsImprovementPillaged()
-            plot:SetImprovementType(IMPROVEMENT_FARM)
-            if pillaged and plot.SetImprovementPillaged ~= nil then
-                plot:SetImprovementPillaged(true)
+            if FB_MakeFeedingFieldVisible(plot) then
+                migrated = migrated + 1
             end
-            migrated = migrated + 1
         end
     end
 
@@ -1193,6 +1216,24 @@ local function FB_PlayerCanBuild(playerID, unitID, x, y, buildType)
         return false
     end
 
+    -- On edible resources the biological field replaces the resource's
+    -- conventional improvement.  The resource itself is never deleted.
+    if fleshborn then
+        local plot = Map.GetPlot(x, y)
+        local improvementType = nil
+        local buildInfo = GameInfo.Builds[buildType]
+        if buildInfo ~= nil and buildInfo.ImprovementType ~= nil then
+            improvementType = GameInfoTypes[buildInfo.ImprovementType]
+        end
+        if plot ~= nil
+            and FB_EDIBLE_RESOURCE_FOOD[plot:GetResourceType(-1)] ~= nil
+            and (improvementType == IMPROVEMENT_PLANTATION
+                or improvementType == IMPROVEMENT_PASTURE
+                or improvementType == IMPROVEMENT_CAMP) then
+            return false
+        end
+    end
+
     if not fleshborn and (buildType == BUILD_FEEDING_FIELD
         or buildType == BUILD_DIGEST_FOREST
         or buildType == BUILD_DIGEST_JUNGLE
@@ -1312,10 +1353,22 @@ local function FB_OnCityCreated(playerID, cityID, projectType, bGold, bFaith)
 end
 
 local function FB_OnPlayerBuilt(playerID, unitID, x, y, buildType)
-    local food = FB_DIGEST_FOOD[buildType]
-    if food == nil then return end
     local player = Players[playerID]
     if not FB_IsFleshbornPlayer(player) then return end
+
+    if buildType == BUILD_FEEDING_FIELD then
+        local plot = Map.GetPlot(x, y)
+        if plot ~= nil and plot:GetOwner() == playerID then
+            -- The custom improvement supplies resource-specific placement
+            -- rules.  Once complete, use a genuine Farm so Civ V reliably
+            -- renders construction, completed, pillaged, and era models.
+            FB_MakeFeedingFieldVisible(plot)
+        end
+        return
+    end
+
+    local food = FB_DIGEST_FOOD[buildType]
+    if food == nil then return end
     local city = FB_FindNearestCity(player, x, y)
     FB_QueueCityFood(playerID, city, food)
 end
