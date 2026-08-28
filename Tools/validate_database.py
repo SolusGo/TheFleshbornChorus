@@ -225,6 +225,17 @@ def main() -> None:
             assert "if buildType == BUILD_FEEDING_FIELD then" in core_lua
             assert "FB_MakeFeedingFieldVisible(plot)" in core_lua
             assert 'plot:SetImprovementType(IMPROVEMENT_FARM)' in core_lua
+            required_balance_rules = {
+                "return 5 + math.ceil(city:GetPopulation() * 0.75)": "city metabolism",
+                "local costByEra = {13, 13, 26, 26, 39, 52, 65, 78}": "army feeding",
+                "local multiplier = 1150": "unit growth cost",
+                "multiplier = 1350": "building/project growth cost",
+                "multiplier = 1300": "Colony Bud growth cost",
+                "multiplier * 950": "Digestive Chamber discount",
+                "FB_CountAdjacentFeedingFields(plot) >= 4": "Feeding Field adjacency",
+            }
+            for snippet, rule_name in required_balance_rules.items():
+                assert snippet in core_lua, f"Missing revised {rule_name} rule"
             fleshborn_icon_capacity = scalar(
                 database,
                 """SELECT MAX(IconsPerRow * IconsPerColumn)

@@ -115,7 +115,7 @@ for override in GameInfo.Civilization_BuildingClassOverrides{
     end
 end
 
-local FB_UNIT_ERA_FEED_X2 = {}
+local FB_UNIT_ERA_FEED_X20 = {}
 local FB_KILL_CACHE = {}
 local FB_KILL_CACHE_TURN = -1
 local FB_POPULATION_ROLLBACK = false
@@ -309,10 +309,10 @@ local function FB_GetNeuralScience(city)
     local population = math.max(0, city:GetPopulation() or 0)
     local specialists = FB_CountSpecialists(city)
     -- Ordinary Citizens consume 2 Food in the Civ V growth engine. Fleshborn
-    -- population metabolism adds 0.5 per Citizen, rounded up per city, while
-    -- every Specialist consumes one additional Food. The fixed 3-Food city
+    -- population metabolism adds 0.75 per Citizen, rounded up per city, while
+    -- every Specialist consumes one additional Food. The fixed 5-Food city
     -- burden is infrastructure and deliberately does not feed the Cluster.
-    local populationFood = (population * 2) + math.ceil(population * 0.5) + specialists
+    local populationFood = (population * 2) + math.ceil(population * 0.75) + specialists
     return math.floor(populationFood / 3), populationFood
 end
 
@@ -391,7 +391,7 @@ local function FB_UpdateCityDummies(playerID, player, city)
                     fieldRuleFood = fieldRuleFood + 1
                 end
 
-                if FB_CountAdjacentFeedingFields(plot) >= 3 then
+                if FB_CountAdjacentFeedingFields(plot) >= 4 then
                     adjacencyFood = adjacencyFood + 1
                 end
 
@@ -471,12 +471,12 @@ local function FB_EnsurePlayerInvariants(player)
     return ok and math.max(0, tonumber(baseMaintenance) or 0) or 0
 end
 
-local function FB_GetUnitFeedX2(unitInfo)
+local function FB_GetUnitFeedX20(unitInfo)
     if unitInfo == nil then
         return 0
     end
 
-    local cached = FB_UNIT_ERA_FEED_X2[unitInfo.ID]
+    local cached = FB_UNIT_ERA_FEED_X20[unitInfo.ID]
     if cached ~= nil then
         return cached
     end
@@ -484,7 +484,7 @@ local function FB_GetUnitFeedX2(unitInfo)
     if tonumber(unitInfo.MilitarySupport) ~= 1
         and (tonumber(unitInfo.Combat) or 0) <= 0
         and (tonumber(unitInfo.RangedCombat) or 0) <= 0 then
-        FB_UNIT_ERA_FEED_X2[unitInfo.ID] = 0
+        FB_UNIT_ERA_FEED_X20[unitInfo.ID] = 0
         return 0
     end
 
@@ -497,21 +497,24 @@ local function FB_GetUnitFeedX2(unitInfo)
         end
     end
 
-    local costByEra = {1, 1, 2, 2, 3, 4, 5, 6}
-    local result = costByEra[eraID + 1] or 6
-    FB_UNIT_ERA_FEED_X2[unitInfo.ID] = result
+    -- Twentieths preserve the exact 30% increase over the original
+    -- 0.5/0.5/1/1/1.5/2/2.5/3 Food schedule. The empire total is rounded
+    -- only once after every military organism has been counted.
+    local costByEra = {13, 13, 26, 26, 39, 52, 65, 78}
+    local result = costByEra[eraID + 1] or 78
+    FB_UNIT_ERA_FEED_X20[unitInfo.ID] = result
     return result
 end
 
 local function FB_IsMilitaryUnitType(unitType)
     local unitInfo = GameInfo.Units[unitType]
-    return unitInfo ~= nil and FB_GetUnitFeedX2(unitInfo) > 0
+    return unitInfo ~= nil and FB_GetUnitFeedX20(unitInfo) > 0
 end
 
-local function FB_GetArmyDemandX2(player)
+local function FB_GetArmyDemandX20(player)
     local demand = 0
     for unit in player:Units() do
-        demand = demand + FB_GetUnitFeedX2(GameInfo.Units[unit:GetUnitType()])
+        demand = demand + FB_GetUnitFeedX20(GameInfo.Units[unit:GetUnitType()])
     end
     return demand
 end
@@ -525,7 +528,7 @@ local function FB_GetGrossFood(city)
 end
 
 local function FB_GetMetabolicBurden(city)
-    return 3 + math.ceil(city:GetPopulation() * 0.5) + FB_CountSpecialists(city)
+    return 5 + math.ceil(city:GetPopulation() * 0.75) + FB_CountSpecialists(city)
 end
 
 local function FB_GetOrder(city)
@@ -563,15 +566,15 @@ local function FB_GetFoodMultiplier(city, order)
         return 1000
     end
 
-    local multiplier = 1000
+    local multiplier = 1150
     if order.kind == "BUILDING" or order.kind == "PROJECT" then
-        multiplier = 1250
+        multiplier = 1350
     elseif order.kind == "UNIT" and order.id == UNIT_BUD then
-        multiplier = 1200
+        multiplier = 1300
     end
 
     if FB_HasBuilding(city, BUILDING_DIGESTIVE) then
-        multiplier = math.floor((multiplier * 900 + 500) / 1000)
+        multiplier = math.floor((multiplier * 950 + 500) / 1000)
     end
     return multiplier
 end
@@ -964,8 +967,8 @@ local function FB_ProcessPlayerTurn(playerID)
         })
     end
 
-    local armyDemandX2 = FB_GetArmyDemandX2(player)
-    local armyDemand = math.ceil(armyDemandX2 / 2)
+    local armyDemandX20 = FB_GetArmyDemandX20(player)
+    local armyDemand = math.ceil(armyDemandX20 / 20)
     local armyFed = math.min(armyDemand, totalPreArmySupply)
     local hungerTier = FB_GetHungerTier(armyDemand, totalPreArmySupply)
 
@@ -1388,7 +1391,7 @@ local function FB_OnUnitPrekill(killedPlayerID, killedUnitID, killedUnitType, x,
     if FB_KILL_CACHE[cacheKey] then return end
 
     local victimInfo = GameInfo.Units[killedUnitType]
-    if victimInfo == nil or FB_GetUnitFeedX2(victimInfo) <= 0 then return end
+    if victimInfo == nil or FB_GetUnitFeedX20(victimInfo) <= 0 then return end
 
     local devourerAdjacent = false
     for direction = 0, 5 do

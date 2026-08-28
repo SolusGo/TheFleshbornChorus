@@ -1,5 +1,15 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-28 — Metabolic balance pass
+
+- Increased the fixed burden of every Brood Node from 3 to 5 Food per turn.
+- Increased additional Citizen metabolism from 0.5 to 0.75 Food per Population, still rounded up once per city.
+- Increased military feeding by exactly 30% in every era. Upkeep is accumulated in twentieths of a Food before the unavoidable empire-level round-up, avoiding per-unit rounding distortion.
+- Increased normal unit growth cost from 100% to 115% of Production cost, building and normal-project growth from 125% to 135%, and Colony Bud growth from 120% to 130%.
+- Reduced the Digestive Chamber order discount from 10% to 5%.
+- Increased the Feeding Field cluster threshold from three adjacent fields to four; the reward remains +1 Food and is still capped at one bonus per worked central field.
+- Updated the metabolism dashboard, Civilopedia help, strategy text, README, and regression validation to match the revised values.
+
 ## 2026-08-28 — Edible-resource Feeding Fields
 
 - Feeding Fields can now engulf Wheat, Bananas, Cattle, Sheep, Deer, Sugar, and Citrus without deleting the resource from the map.

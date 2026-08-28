@@ -32,16 +32,16 @@ Instead, choose what the city should grow:
 | Growth choice | Food cost | Result |
 | --- | ---: | --- |
 | **Grow Population** | Normal city growth | All usable Food remains in the growth store |
-| **Unit** | 100% of its normal Production cost | Food becomes unit progress; population growth freezes |
-| **Building / Project** | 125% of its normal Production cost | Food becomes project progress; population growth freezes |
-| **Colony Bud** | 120% of Settler cost | Also removes 1 Population when completed |
+| **Unit** | 115% of its normal Production cost | Food becomes unit progress; population growth freezes |
+| **Building / normal Project** | 135% of its normal Production cost | Food becomes project progress; population growth freezes |
+| **Colony Bud** | 130% of Settler cost | Also removes 1 Population when completed |
 | **World Congress project** | 1 Food per contribution | Food is staged as isolated Congress overflow; population growth freezes |
 
 The production list is the Growth Queue. Select the explicit **Grow Population** process when a city should grow Citizens. Select a unit or building when its surplus should be diverted into a project. The normal CityView still uses hammer-shaped widgets in this placeholder release; the **Chorus metabolism button** near the top-right of the main screen shows the actual Food allocation and estimated Food cost.
 
-The **Digestive Chamber** reduces every unit, building, and normal project’s Food cost by 10% in its city. Congress contributions remain a direct 1:1 conversion.
+The **Digestive Chamber** reduces every unit, building, and normal project’s Food cost by 5% in its city. Congress contributions remain a direct 1:1 conversion.
 
-The **Neural Cluster** replaces the Library. Instead of the Community Patch Library's ordinary population-scaling yield, it generates **+1 Science for every 3 Food consumed by population** in its city. This counts ordinary Citizen consumption, the Chorus's additional Citizen metabolism, and additional Specialist metabolism, but not the fixed 3-Food city-organ burden.
+The **Neural Cluster** replaces the Library. Instead of the Community Patch Library's ordinary population-scaling yield, it generates **+1 Science for every 3 Food consumed by population** in its city. This counts ordinary Citizen consumption, the Chorus's additional Citizen metabolism, and additional Specialist metabolism, but not the fixed 5-Food city-organ burden.
 
 Population growth is stopped at the population-change callback while any project is selected, and the pre-turn Food store is restored immediately. Unit, building, and project completion also requires a short-lived authorization written by the Food ledger. This closes normal hammers, feature chops, Great Engineer hurry, purchases, and other direct-Production completion paths rather than repairing their effects a turn later.
 
@@ -65,8 +65,8 @@ Happiness does not limit the Chorus. Food does.
 
 Every city consumes:
 
-- **3 Food per turn** for the Brood Node itself;
-- **0.5 Food per Citizen**, rounded up per city;
+- **5 Food per turn** for the Brood Node itself;
+- **0.75 Food per Citizen**, rounded up per city;
 - **1 additional Food per Specialist**.
 
 The **Founding Core** in the current capital contributes +4 Food. The Chorus also begins with a Harvester, allowing the First Stomach to create its first Feeding Field instead of becoming trapped by metabolism before any agricultural infrastructure exists. This safeguard belongs only to the current capital; every additional Brood Node pays the complete expansion burden.
@@ -81,14 +81,14 @@ Every military unit adds to an empire-wide feeding requirement based on the era 
 
 | Era | Food per military unit |
 | --- | ---: |
-| Ancient | 0.5 |
-| Classical | 0.5 |
-| Medieval | 1 |
-| Renaissance | 1 |
-| Industrial | 1.5 |
-| Modern | 2 |
-| Atomic / Postmodern | 2.5 |
-| Information / Future | 3 |
+| Ancient | 0.65 |
+| Classical | 0.65 |
+| Medieval | 1.30 |
+| Renaissance | 1.30 |
+| Industrial | 1.95 |
+| Modern | 2.60 |
+| Atomic / Postmodern | 3.25 |
+| Information / Future | 3.90 |
 
 Fractional costs are summed empire-wide and rounded once. Available post-metabolism surplus feeds the army before it can grow population or projects.
 
@@ -178,7 +178,7 @@ Replaces the Farm through a Fleshborn-only Harvester action. The map uses Civ V'
 - +1 Food with Fresh Water;
 - +1 Food at Civil Service;
 - +1 Food at Fertilizer;
-- a **worked** Feeding Field with at least three adjacent Feeding Fields gains +1 Food, capped at +1;
+- a **worked** Feeding Field with at least four adjacent Feeding Fields gains +1 Food, capped at +1;
 - may be constructed while preserving Marsh;
 - may replace the ordinary resource improvement on **Wheat, Bananas, Cattle, Sheep, Deer, Sugar, and Citrus**;
 - when worked, metabolizes Wheat for **+1 Food**, Bananas/Cattle/Sheep/Deer for **+2 Food**, and Sugar/Citrus for **+3 Food**;
@@ -194,7 +194,7 @@ Replaces the Granary.
 - retains the active Community Patch Granary’s Food effects;
 - has no maintenance;
 - keeps an additional 15% Food after population growth;
-- reduces Food spent per point of unit, building, or project progress by 10%.
+- reduces Food spent per point of unit, building, or project progress by 5%.
 
 ### Neural Cluster
 
@@ -204,9 +204,9 @@ Replaces the Library and uses its stock portrait as placeholder art.
 - removes the Community Patch Library's ordinary +0.5 Science per Citizen;
 - generates +1 Science for every complete 3 Food consumed by population in the city;
 - counts normal 2-Food Citizen consumption, additional Fleshborn Citizen metabolism, and Specialist metabolism;
-- does not count the fixed 3-Food Brood Node burden.
+- does not count the fixed 5-Food Brood Node burden.
 
-The bonus is recalculated dynamically. For example, a 3-Population city without Specialists consumes 8 Food for its population and receives +2 Science from its Neural Cluster.
+The bonus is recalculated dynamically. For example, a 3-Population city without Specialists consumes 9 Food for its population and receives +3 Science from its Neural Cluster.
 
 Libraries acquired by the Chorus are normalized into Neural Clusters. If a city containing a Neural Cluster passes to a non-Chorus owner through conquest, liberation, or peaceful transfer, it becomes that civilization's normal Library-class building because the new owner does not possess Fleshborn population metabolism.
 
@@ -232,7 +232,7 @@ Unlike a normal forest chop, this never creates Production.
 
 Replaces the Settler.
 
-- costs about 120% of normal Settler cost in Food;
+- costs about 130% of normal Settler cost in Food;
 - cannot be grown by a size-1 city;
 - removes 1 Population from its parent when completed;
 - founds a normal mechanically functional city presented as a Brood Node.

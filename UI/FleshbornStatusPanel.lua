@@ -90,7 +90,7 @@ local function FB_LiveFallback(player)
         local citizenConsumption = population * 2
         local grossFood = city:FoodDifference() or 0
         local baseFoodProduced = math.max(0, grossFood + citizenConsumption)
-        local metabolicBurden = 3 + math.ceil(population * 0.5)
+        local metabolicBurden = 5 + math.ceil(population * 0.75)
         local orderKind, orderID = FB_LiveOrder(city)
         local foodConsumed = citizenConsumption + metabolicBurden
         table.insert(cities, {
@@ -447,7 +447,7 @@ local function FB_RefreshBrood(cityStatus)
         needed = math.max(0, cityStatus.projectNeeded or 0)
         rate = math.max(0, cityStatus.productionGain or 0)
         progressNote = cityStatus.digestive
-            and "Digestive Chamber reduces this biological project's Food cost by 10%."
+            and "Digestive Chamber reduces this biological project's Food cost by 5%."
             or "Only this Brood Node's usable Food advances the project."
     else
         progressNote = "Each allocated Food becomes one World Congress contribution."
@@ -480,7 +480,7 @@ local function FB_RefreshBrood(cityStatus)
         "Current order consumes " .. tostring(cityStatus.foodSpent or 0) .. " [ICON_FOOD]")
 
     Controls.BroodDigestiveLabel:SetText(cityStatus.digestive
-        and FB_Color("DIGESTIVE CHAMBER ACTIVE   •   -10% project Food cost", "[COLOR_POSITIVE_TEXT]")
+        and FB_Color("DIGESTIVE CHAMBER ACTIVE   •   -5% project Food cost", "[COLOR_POSITIVE_TEXT]")
         or "Digestive Chamber not present")
     Controls.BroodNeuralLabel:SetText(cityStatus.neuralCluster
         and FB_Color(

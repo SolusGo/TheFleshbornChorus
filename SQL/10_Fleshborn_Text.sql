@@ -6,7 +6,7 @@
 INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE', 'All Is Sustenance'),
 ('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_SHORT', 'All Is Sustenance'),
-('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP', 'Cannot use [ICON_PRODUCTION] Production, construct World Wonders, purchase orders or tiles, or upgrade units with Gold. Select Grow Population or divert net [ICON_FOOD] Food into units at 100% cost, Colony Buds at 120%, buildings at 125%, and active World Congress projects at 1:1. Cities cost 3 [ICON_FOOD] plus 0.5 per Citizen each turn; Specialists cost 1 more. The capital has a +4 [ICON_FOOD] Founding Core and begins with a Harvester. Military units consume era-scaled [ICON_FOOD] and suffer The Hunger when underfed. [ICON_GOLD] Gold and [ICON_PEACE] Faith are digested into Food at 4:1 and 3:1. Ignores Happiness, maintenance, and strategic-resource requirements.'),
+('TXT_KEY_TRAIT_FLESHBORN_ALL_IS_SUSTENANCE_HELP', 'Cannot use [ICON_PRODUCTION] Production, construct World Wonders, purchase orders or tiles, or upgrade units with Gold. Select Grow Population or divert net [ICON_FOOD] Food into units at 115% cost, Colony Buds at 130%, buildings and normal projects at 135%, and active World Congress projects at 1:1. Cities cost 5 [ICON_FOOD] plus 0.75 per Citizen each turn, rounded up per city; Specialists cost 1 more. The capital has a +4 [ICON_FOOD] Founding Core and begins with a Harvester. Military units consume era-scaled [ICON_FOOD] and suffer The Hunger when underfed. [ICON_GOLD] Gold and [ICON_PEACE] Faith are digested into Food at 4:1 and 3:1. Ignores Happiness, maintenance, and strategic-resource requirements.'),
 
 ('TXT_KEY_LEADER_FLESHBORN_FIRST_MAW', 'The First Maw'),
 ('TXT_KEY_LEADER_FLESHBORN_FIRST_MAW_PEDIA', 'Before there were cities, there was appetite. Before there was speech, a mouth learned that other mouths could answer. The First Maw is not monarch, prophet, or parent. It is the earliest organ around which the Fleshborn Chorus learned to coordinate: a hunger old enough to remember being alone.[NEWLINE][NEWLINE]Under the First Maw, no wall is merely stone and no field is merely land. Every settlement is a stomach, every road a vein, and every army a mobile demand for calories. The Chorus does not accumulate wealth. It grows.'),
@@ -41,12 +41,12 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_UNIT_FLESHBORN_HARVESTER_PEDIA', 'A Harvester is equal parts limb, mouth, and patient tool. Its task is not to cultivate land in the human sense, but to connect useful biomass to the nearest hungry organ.'),
 
 ('TXT_KEY_UNIT_FLESHBORN_COLONY_BUD', 'Colony Bud'),
-('TXT_KEY_UNIT_FLESHBORN_COLONY_BUD_HELP', 'Settler replacement grown for 120% of the normal cost in [ICON_FOOD]. On completion, the parent city loses 1 Population. Founds a new Brood Node.'),
+('TXT_KEY_UNIT_FLESHBORN_COLONY_BUD_HELP', 'Settler replacement grown for 130% of the normal cost in [ICON_FOOD]. On completion, the parent city loses 1 Population. Founds a new Brood Node.'),
 ('TXT_KEY_UNIT_FLESHBORN_COLONY_BUD_STRATEGY', 'Expansion consumes Food twice: once to grow the Bud and once as living Population torn from its parent.'),
 ('TXT_KEY_UNIT_FLESHBORN_COLONY_BUD_PEDIA', 'A Colony Bud is a sealed packet of memory, digestive tissue, and reproductive mass. When it is ready, the parent organ tears away a living portion of itself and sends that portion crawling toward fertile ground.'),
 
 ('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER', 'Digestive Chamber'),
-('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER_HELP', 'Granary replacement. No maintenance. Retains the Granary''s Food effects, keeps an additional 15% [ICON_FOOD] Food after growth, and reduces the Food cost of projects in this city by 10%.'),
+('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER_HELP', 'Granary replacement. No maintenance. Retains the Granary''s Food effects, keeps an additional 15% [ICON_FOOD] Food after growth, and reduces the Food cost of biological orders in this city by 5%.'),
 ('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER_STRATEGY', 'The essential stomach-and-womb of a Brood Node. It improves both population recovery and project efficiency.'),
 ('TXT_KEY_BUILDING_FLESHBORN_DIGESTIVE_CHAMBER_PEDIA', 'The Digestive Chamber is not clearly a warehouse, stomach, or womb. It receives biomass, remembers its useful shapes, and releases either a larger city or a completed organism.'),
 
@@ -72,7 +72,7 @@ INSERT INTO Language_en_US (Tag, Text) VALUES
 ('TXT_KEY_BUILDING_FLESHBORN_BLOOM_HELP', '+10% [ICON_FOOD] Food during a Golden Age.'),
 
 ('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD', 'Feeding Field'),
-('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_HELP', '+1 [ICON_FOOD] Food. +1 with Fresh Water, +1 at Civil Service, and +1 at Fertilizer. A worked Feeding Field with at least three adjacent Feeding Fields gains +1 Food (maximum +1). Metabolizes Wheat (+1), Bananas, Cattle, Sheep, or Deer (+2), and Sugar or Citrus (+3). Edible luxuries are not connected for trade. May preserve Marsh; Forest and Jungle must be digested first.'),
+('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_HELP', '+1 [ICON_FOOD] Food. +1 with Fresh Water, +1 at Civil Service, and +1 at Fertilizer. A worked Feeding Field with at least four adjacent Feeding Fields gains +1 Food (maximum +1). Metabolizes Wheat (+1), Bananas, Cattle, Sheep, or Deer (+2), and Sugar or Citrus (+3). Edible luxuries are not connected for trade. May preserve Marsh; Forest and Jungle must be digested first.'),
 ('TXT_KEY_IMPROVEMENT_FLESHBORN_FEEDING_FIELD_PEDIA', 'A Feeding Field is a thin agricultural organ spread across the soil. Rootlets sort edible matter, capillaries draw water, and the whole mat contracts toward the Brood Node when it is time to feed. It engulfs edible resources without erasing them from the land, converting their useful biomass into nourishment rather than commerce.'),
 ('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD', 'Construct a Feeding Field'),
 ('TXT_KEY_BUILD_FLESHBORN_FEEDING_FIELD_HELP', 'Constructs a Feeding Field. May replace the normal improvement on Wheat, Bananas, Cattle, Sheep, Deer, Sugar, or Citrus and metabolize the worked resource into extra Food.'),
