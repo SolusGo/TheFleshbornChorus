@@ -1,5 +1,11 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-28 — Opening metabolism safeguard
+
+- Increased the capital-only Founding Core from +4 to +6 Food.
+- The bonus now fully offsets the six-Food minimum metabolic burden of a one-Population capital, preventing a poor opening tile from stalling the Chorus before its starting Harvester establishes the first Feeding Field.
+- Additional Brood Nodes receive no Founding Core and still pay the complete revised metabolic burden.
+
 ## 2026-08-28 — Metabolic balance pass
 
 - Increased the fixed burden of every Brood Node from 3 to 5 Food per turn.
