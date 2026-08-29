@@ -343,6 +343,17 @@ def main() -> None:
                    WHERE BuildingType = 'BUILDING_FLESHBORN_NEURAL_SCIENCE'
                    AND YieldType = 'YIELD_SCIENCE' AND Yield = 1""",
             ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Buildings
+                   WHERE Type = 'BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER'
+                   AND BuildingClass = 'BUILDINGCLASS_FLESHBORN_PUBLIC_OPINION_BUFFER'
+                   AND IsDummy = 1 AND UnmoddedHappiness = 1
+                   AND Cost = -1 AND GoldMaintenance = 0
+                   AND NeverCapture = 1""",
+            ) == 1
+            assert "FB_SyncPublicOpinionImmunity(player)" in core_lua
+            assert "FB_BALANCE_VP and 0 or FB_GetPublicOpinionUnhappiness(player)" in core_lua
 
     print("Validation passed: database, art, presentation, unit overrides, and metabolism UI are coherent.")
 

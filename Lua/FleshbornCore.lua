@@ -19,6 +19,7 @@ local BUILDING_MEMORY = GameInfoTypes.BUILDING_FLESHBORN_MEMORY
 local BUILDING_NEURAL_SCIENCE = GameInfoTypes.BUILDING_FLESHBORN_NEURAL_SCIENCE
 local BUILDING_PRODUCTION_SINK = GameInfoTypes.BUILDING_FLESHBORN_PRODUCTION_SINK
 local BUILDING_BLOOM = GameInfoTypes.BUILDING_FLESHBORN_BLOOM
+local BUILDING_PUBLIC_OPINION_BUFFER = GameInfoTypes.BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER
 local POLICY_INVARIANTS = GameInfoTypes.POLICY_FLESHBORN_INVARIANTS
 local IMPROVEMENT_FEEDING_FIELD_LEGACY = GameInfoTypes.IMPROVEMENT_FLESHBORN_FEEDING_FIELD
 local IMPROVEMENT_FARM = GameInfoTypes.IMPROVEMENT_FARM
@@ -130,7 +131,8 @@ for _, buildingType in ipairs({
     "BUILDING_FLESHBORN_MEMORY",
     "BUILDING_FLESHBORN_NEURAL_SCIENCE",
     "BUILDING_FLESHBORN_PRODUCTION_SINK",
-    "BUILDING_FLESHBORN_BLOOM"
+    "BUILDING_FLESHBORN_BLOOM",
+    "BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER"
 }) do
     local buildingID = GameInfoTypes[buildingType]
     if buildingID ~= nil then
@@ -190,6 +192,37 @@ local function FB_SetBuildingCount(city, buildingID, count)
     local realTarget = math.max(0, count - freeCount)
     if city:GetNumRealBuilding(buildingID) ~= realTarget then
         city:SetNumRealBuilding(buildingID, realTarget)
+    end
+end
+
+local function FB_GetPublicOpinionUnhappiness(player)
+    -- Public Opinion is added by the DLL after ordinary city and population
+    -- unhappiness modifiers. CP exposes both names across its supported
+    -- versions, so prefer the direct Culture value and retain the older alias.
+    local getter = player.GetPublicOpinionUnhappiness
+        or player.GetUnhappinessFromPublicOpinion
+    if getter == nil then return 0 end
+
+    local ok, value = pcall(getter, player)
+    if not ok then return 0 end
+    return math.max(0, math.min(10000, math.floor(tonumber(value) or 0)))
+end
+
+local function FB_SyncPublicOpinionImmunity(player)
+    if BUILDING_PUBLIC_OPINION_BUFFER == nil then return end
+
+    -- Full Vox Populi calculates empire approval from local citizen needs;
+    -- Public Opinion is already outside that ratio. Adding building Happiness
+    -- there would create a real bonus, so the compatibility buffer is needed
+    -- only by the Community Patch/BNW global-Happiness ruleset.
+    local target = FB_BALANCE_VP and 0 or FB_GetPublicOpinionUnhappiness(player)
+    local capital = player:GetCapitalCity()
+    for city in player:Cities() do
+        FB_SetBuildingCount(
+            city,
+            BUILDING_PUBLIC_OPINION_BUFFER,
+            city == capital and target or 0
+        )
     end
 end
 
@@ -922,6 +955,7 @@ local function FB_ProcessPlayerTurn(playerID)
     local totalConsumptionHarvest = 0
 
     local maintenanceSuppressed = FB_EnsurePlayerInvariants(player)
+    FB_SyncPublicOpinionImmunity(player)
     FB_NormalizeUnits(player)
 
     for city in player:Cities() do
@@ -1453,6 +1487,7 @@ local function FB_OnPlayerDoneTurn(playerID)
     if not FB_IsFleshbornPlayer(player) then return end
 
     FB_EnsurePlayerInvariants(player)
+    FB_SyncPublicOpinionImmunity(player)
     for city in player:Cities() do
         FB_UpdateCityDummies(playerID, player, city)
         local order = FB_GetOrder(city)
@@ -1682,6 +1717,7 @@ local function FB_Initialize()
         local player = Players[playerID]
         if FB_IsFleshbornPlayer(player) then
             FB_EnsurePlayerInvariants(player)
+            FB_SyncPublicOpinionImmunity(player)
             FB_NormalizeUnits(player)
             for city in player:Cities() do
                 FB_UpdateCityDummies(playerID, player, city)

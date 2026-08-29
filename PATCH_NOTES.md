@@ -1,5 +1,13 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-29 — Public Opinion immunity
+
+- Closed the late-game Happiness exception where ideological Public Opinion was added after the Chorus's normal city and population unhappiness modifiers.
+- Under Community Patch's global-Happiness rules, a hidden capital buffer now offsets exactly the current Public Opinion unhappiness and follows the capital if it moves.
+- Under full Vox Populi, no buffer is granted because Public Opinion is already outside the local citizen-approval ratio; this avoids turning immunity into bonus Happiness.
+- Foreign ideological pressure and preferred-ideology information remain visible, but they can no longer cause Chorus uprisings, city defections, growth penalties, or combat penalties.
+- The fix initializes on existing saves and is resynchronized at both ends of every Chorus turn.
+
 ## 2026-08-28 — Opening metabolism safeguard
 
 - Increased the capital-only Founding Core from +4 to +6 Food.
