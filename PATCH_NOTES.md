@@ -1,9 +1,17 @@
 # The Fleshborn Chorus — Patch Notes
 
+## 2026-08-30 — Existing-save compatibility hotfix
+
+- Removed the newly introduced Public Opinion dummy building and building class. Adding database types changes Civ V's serialized runtime IDs and was not compatible with saves created before that patch.
+- Reused the already-existing Founding Core state slot for the exact Community Patch Public Opinion offset, preserving the original database type roster.
+- Moved the Founding Core's +6 capital Food into the existing Lua metabolism calculation so ideological pressure cannot multiply its Food yield.
+- Added regression checks that reject any new Public Opinion database type and verify the capital Food bonus remains present in both the budget and real growth storage.
+- Existing saves from before the Public Opinion patch can load again after the mod database is rebuilt.
+
 ## 2026-08-29 — Public Opinion immunity
 
 - Closed the late-game Happiness exception where ideological Public Opinion was added after the Chorus's normal city and population unhappiness modifiers.
-- Under Community Patch's global-Happiness rules, a hidden capital buffer now offsets exactly the current Public Opinion unhappiness and follows the capital if it moves.
+- Under Community Patch's global-Happiness rules, the existing hidden Founding Core state now offsets exactly the current Public Opinion unhappiness and follows the capital if it moves.
 - Under full Vox Populi, no buffer is granted because Public Opinion is already outside the local citizen-approval ratio; this avoids turning immunity into bonus Happiness.
 - Foreign ideological pressure and preferred-ideology information remain visible, but they can no longer cause Chorus uprisings, city defections, growth penalties, or combat penalties.
 - The fix initializes on existing saves and is resynchronized at both ends of every Chorus turn.

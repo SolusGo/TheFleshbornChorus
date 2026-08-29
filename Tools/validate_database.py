@@ -346,14 +346,31 @@ def main() -> None:
             assert scalar(
                 database,
                 """SELECT COUNT(*) FROM Buildings
-                   WHERE Type = 'BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER'
-                   AND BuildingClass = 'BUILDINGCLASS_FLESHBORN_PUBLIC_OPINION_BUFFER'
+                   WHERE Type = 'BUILDING_FLESHBORN_FOUNDING_CORE'
+                   AND BuildingClass = 'BUILDINGCLASS_FLESHBORN_FOUNDING_CORE'
                    AND IsDummy = 1 AND UnmoddedHappiness = 1
                    AND Cost = -1 AND GoldMaintenance = 0
                    AND NeverCapture = 1""",
             ) == 1
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Buildings
+                   WHERE Type = 'BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER'""",
+            ) == 0
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM BuildingClasses
+                   WHERE Type = 'BUILDINGCLASS_FLESHBORN_PUBLIC_OPINION_BUFFER'""",
+            ) == 0
+            assert scalar(
+                database,
+                """SELECT COUNT(*) FROM Building_YieldChanges
+                   WHERE BuildingType = 'BUILDING_FLESHBORN_FOUNDING_CORE'""",
+            ) == 0
             assert "FB_SyncPublicOpinionImmunity(player)" in core_lua
             assert "FB_BALANCE_VP and 0 or FB_GetPublicOpinionUnhappiness(player)" in core_lua
+            assert "local foundingCoreFood = city:IsCapital() and FB_FOUNDING_CORE_FOOD or 0" in core_lua
+            assert "city:ChangeFood(data.foundingCoreFood + pending - data.metabolic - data.army)" in core_lua
 
     print("Validation passed: database, art, presentation, unit overrides, and metabolism UI are coherent.")
 

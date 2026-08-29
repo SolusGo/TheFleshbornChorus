@@ -19,7 +19,6 @@ local BUILDING_MEMORY = GameInfoTypes.BUILDING_FLESHBORN_MEMORY
 local BUILDING_NEURAL_SCIENCE = GameInfoTypes.BUILDING_FLESHBORN_NEURAL_SCIENCE
 local BUILDING_PRODUCTION_SINK = GameInfoTypes.BUILDING_FLESHBORN_PRODUCTION_SINK
 local BUILDING_BLOOM = GameInfoTypes.BUILDING_FLESHBORN_BLOOM
-local BUILDING_PUBLIC_OPINION_BUFFER = GameInfoTypes.BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER
 local POLICY_INVARIANTS = GameInfoTypes.POLICY_FLESHBORN_INVARIANTS
 local IMPROVEMENT_FEEDING_FIELD_LEGACY = GameInfoTypes.IMPROVEMENT_FLESHBORN_FEEDING_FIELD
 local IMPROVEMENT_FARM = GameInfoTypes.IMPROVEMENT_FARM
@@ -131,8 +130,7 @@ for _, buildingType in ipairs({
     "BUILDING_FLESHBORN_MEMORY",
     "BUILDING_FLESHBORN_NEURAL_SCIENCE",
     "BUILDING_FLESHBORN_PRODUCTION_SINK",
-    "BUILDING_FLESHBORN_BLOOM",
-    "BUILDING_FLESHBORN_PUBLIC_OPINION_BUFFER"
+    "BUILDING_FLESHBORN_BLOOM"
 }) do
     local buildingID = GameInfoTypes[buildingType]
     if buildingID ~= nil then
@@ -209,7 +207,7 @@ local function FB_GetPublicOpinionUnhappiness(player)
 end
 
 local function FB_SyncPublicOpinionImmunity(player)
-    if BUILDING_PUBLIC_OPINION_BUFFER == nil then return end
+    if BUILDING_FOUNDING_CORE == nil then return end
 
     -- Full Vox Populi calculates empire approval from local citizen needs;
     -- Public Opinion is already outside that ratio. Adding building Happiness
@@ -220,7 +218,7 @@ local function FB_SyncPublicOpinionImmunity(player)
     for city in player:Cities() do
         FB_SetBuildingCount(
             city,
-            BUILDING_PUBLIC_OPINION_BUFFER,
+            BUILDING_FOUNDING_CORE,
             city == capital and target or 0
         )
     end
@@ -375,11 +373,12 @@ local function FB_UpdateCityDummies(playerID, player, city)
     -- maintenance, or city yields are evaluated.
     FB_NormalizeCityBuildings(city)
     FB_SetBuildingCount(city, BUILDING_METABOLISM, 1)
-    -- The First Stomach must be able to establish its initial Feeding Fields
-    -- before the full metabolism can otherwise deadlock a size-one capital.
-    -- Only the current capital receives this core yield; later Brood Nodes pay
-    -- the complete expansion burden described by the civilization design.
-    FB_SetBuildingCount(city, BUILDING_FOUNDING_CORE, city:IsCapital() and 1 or 0)
+    -- The existing Founding Core state slot doubles as the CP-only Public
+    -- Opinion offset. Never create another database building type here: Civ V
+    -- serializes runtime IDs into saves. Non-capitals must never retain it.
+    if not city:IsCapital() then
+        FB_SetBuildingCount(city, BUILDING_FOUNDING_CORE, 0)
+    end
     FB_SetBuildingCount(city, BUILDING_BLOOM, player:IsGoldenAge() and 1 or 0)
     FB_SetBuildingCount(city, BUILDING_MEMORY, 1 + math.floor(city:GetPopulation() / 5))
 
@@ -984,7 +983,11 @@ local function FB_ProcessPlayerTurn(playerID)
     FB_SuppressHappinessGoldenAge(playerID, player)
 
     for _, city in ipairs(cities) do
-        local gross = FB_GetGrossFood(city)
+        -- Founding Core Food is calculated in Lua so its existing database
+        -- building can safely carry the exact Public Opinion offset without
+        -- adding a new serialized type or multiplying the capital bonus.
+        local foundingCoreFood = city:IsCapital() and FB_FOUNDING_CORE_FOOD or 0
+        local gross = FB_GetGrossFood(city) + foundingCoreFood
         local metabolic = FB_GetMetabolicBurden(city)
         local consumptionHarvest = consumptionHarvestByCity[city:GetID()] or 0
         local pending = FB_GetPendingFood(playerID, city) + consumptionHarvest
@@ -995,6 +998,7 @@ local function FB_ProcessPlayerTurn(playerID)
             gross = gross,
             metabolic = metabolic,
             pending = pending,
+            foundingCoreFood = foundingCoreFood,
             consumptionHarvest = consumptionHarvest,
             preArmy = preArmy,
             army = 0
@@ -1050,7 +1054,7 @@ local function FB_ProcessPlayerTurn(playerID)
                 -- AI support follows the design allocation: roughly 40% to
                 -- projects at peace, 60% to Colony Buds, and 70% to wartime
                 -- military.  The remainder is left for population growth.
-                city:ChangeFood(-(data.metabolic + data.army))
+                city:ChangeFood(data.foundingCoreFood - data.metabolic - data.army)
             end
 
             if order.kind == "LEAGUE" then
@@ -1083,7 +1087,7 @@ local function FB_ProcessPlayerTurn(playerID)
                 FB_SetFood(city, frozen)
             end
             FB_SetSavedNumber(frozenKey, -1)
-            city:ChangeFood(pending - data.metabolic - data.army)
+            city:ChangeFood(data.foundingCoreFood + pending - data.metabolic - data.army)
             FB_SetPendingFood(playerID, city, 0)
         end
 
@@ -1110,7 +1114,7 @@ local function FB_ProcessPlayerTurn(playerID)
             injectedFood = data.pending,
             consumptionHarvestFood = data.consumptionHarvest,
             consumptionSourceFood = consumptionSourceByCity[city:GetID()] or 0,
-            foundingCoreFood = FB_HasBuilding(city, BUILDING_FOUNDING_CORE) and FB_FOUNDING_CORE_FOOD or 0,
+            foundingCoreFood = data.foundingCoreFood,
             metabolicBurden = data.metabolic,
             armyBurden = data.army,
             netFood = net,
